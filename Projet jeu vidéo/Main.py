@@ -10,62 +10,50 @@ ecran = py.display.set_mode(size=(0, 0))
 color = (255,255,255)
 ecran.fill(color)
 
-# // Espace dédié au diverses variables liée au fonctionnement du code //
-continuer = True
+# // Set up du framerate //
+FPS = 30
+fpsClock = py.time.Clock()
+
+# // imports divers //
+from inputs import inputs
 
 # // Toutes les classes sont si dessous // 
-class joueur(py.sprite.Sprite):
-    def __init__(self, x,y):
-        py.sprite.Sprite.__init__(self)
-        self.image = py.image.load("pouce.png")
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-    def movejoueur(self,x,y):
-        self.rect.x = x
-        self.rect.y = y
-    def avancevertical(self, x, y):
-        self.rect.move_ip([x,y])
-    def avancehorizontal(self, x,y):
-        self.rect.move_ip([x,y])
- 
-# // ajout des sprites dans le jeu //
+from Joueur import Joueur
 
-joueurdep = py.sprite.Group()
-joueur_ = joueur(100, 100) 
-joueurdep.add(joueur_)
+def main():
+    # // Espace dédié au diverses variables liée au fonctionnement du code //
+    continuer = True
 
-# // fonction deverses //
-def controls():
-    if py.key.get_pressed()[py.K_z]:
-        joueur_.avancevertical(0,-1)
-    if py.key.get_pressed()[py.K_s]:
-        joueur_.avancevertical(0,1)
-    if py.key.get_pressed()[py.K_q]:
-        joueur_.avancehorizontal(-1,0)
-    if py.key.get_pressed()[py.K_d]:
-        joueur_.avancehorizontal(1,0)
+    # // ajout des sprites dans le jeu //
+    joueurdep = py.sprite.Group()
+    joueur = Joueur(100, 100) 
+    joueurdep.add(joueur)
 
-def Affichage():
-    joueurdep.update() 
+    # // la boucle pour les evenements et autres //
+    while continuer: 
+
+        # // Les évenement (input joueur) sont ici //
+
+        for event in py.event.get():
+            if event.type == py.KEYDOWN:
+                for key in inputs["quit"]:
+                    if event.key == key:
+                        py.quit()
+        
+        # // mise a niveaux des objets du monde (joueur, pnj, ...)
+        dt = fpsClock.get_time() / 1000
+        joueurdep.update(dt)
+
+        # // Affichage //
+        Affichage(joueurdep)
+
+        fpsClock.tick(FPS)
+
+# // fonction diverses //
+
+def Affichage(joueurdep):
     joueurdep.draw(ecran)
     py.display.update()
 
-
-# // la boucle pour les evenements et autres //
-while continuer: 
-
-    # // Les évenement (input joueur) sont ici //
-
-    for event in py.event.get():
-        if event.type == py.KEYDOWN:
-            if event.key == py.K_ESCAPE:
-                continuer = False
-
-    controls()
-
-    # // Affichage //
-    Affichage()
-
-
-py.quit()
-
+if __name__ == "__main__":
+    main()
