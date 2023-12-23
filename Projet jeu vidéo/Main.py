@@ -12,7 +12,6 @@ ecran.fill(color)
 
 # // Espace dédié au diverses variables liée au fonctionnement du code //
 continuer = True
-noir = (255,255,255)
 
 # // Toutes les classes sont si dessous // 
 class joueur(py.sprite.Sprite):
@@ -46,6 +45,11 @@ def controls():
     if py.key.get_pressed()[py.K_d]:
         joueur_.avancehorizontal(1,0)
 
+def Affichage():
+    joueurdep.update() 
+    joueurdep.draw(ecran)
+    py.display.update()
+
 
 # // la boucle pour les evenements et autres //
 while continuer: 
@@ -60,9 +64,7 @@ while continuer:
     controls()
 
     # // Affichage //
-    joueurdep.update() 
-    joueurdep.draw(ecran)
-    py.display.update()
+    Affichage()
 
 
 py.quit()
