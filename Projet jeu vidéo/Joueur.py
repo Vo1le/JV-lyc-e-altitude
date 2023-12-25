@@ -7,18 +7,39 @@ class Joueur(py.sprite.Sprite):
         self.image = py.image.load("pouce.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
-        self.vitesse = py.math.Vector2(100, 100)
+        self.vitesse = py.math.Vector2(0, 0)
+        self.vitesseMax = 250.0
+        self.acceleration = 500.0
+        self.friction = 750.0
 
     def update(self, dt):
         touchesAppuyes = py.key.get_pressed()
         if self.verifierInput("haut", touchesAppuyes):
-            self.avance(0, -self.vitesse.y * dt)
-        if self.verifierInput("bas", touchesAppuyes):
-            self.avance(0, self.vitesse.y * dt)
+            if self.vitesse.y > 0:
+                self.vitesse.y = max(self.vitesse.y - self.friction * dt, 0)
+            else:
+                self.vitesse.y = max(self.vitesse.y - self.acceleration * dt, -self.vitesseMax)
+        elif self.verifierInput("bas", touchesAppuyes):
+            if self.vitesse.y < 0:
+                self.vitesse.y = max(self.vitesse.y + self.friction * dt, 0)
+            else:
+                self.vitesse.y = min(self.vitesse.y + self.acceleration * dt, self.vitesseMax)
+        else:
+            self.vitesse.move_towards_ip(py.math.Vector2(self.vitesse.x, 0), self.friction * dt)
         if self.verifierInput("gauche", touchesAppuyes):
-            self.avance(-self.vitesse.x * dt, 0)
-        if self.verifierInput("droite", touchesAppuyes):
-            self.avance(self.vitesse.x * dt, 0)
+            if self.vitesse.x > 0:
+                self.vitesse.x = max(self.vitesse.x - self.friction * dt, 0)
+            else:
+                self.vitesse.x = max(self.vitesse.x - self.acceleration * dt, -self.vitesseMax)
+        elif self.verifierInput("droite", touchesAppuyes):
+            if self.vitesse.x < 0:
+                self.vitesse.x = max(self.vitesse.x - self.friction * dt, 0)
+            else:
+                self.vitesse.x = min(self.vitesse.x + self.acceleration * dt, self.vitesseMax)
+        else:
+            self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
+        
+        self.avance(self.vitesse.x * dt, self.vitesse.y * dt)
     
     def movejoueur(self, x, y):
         self.rect.x = x
