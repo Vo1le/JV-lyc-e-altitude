@@ -46,11 +46,8 @@ class Joueur(py.sprite.Sprite):
         self.rect.y = y
     
     def avance(self, direction, dt):
-        if direction.x != 0.0 and direction.y != 0.0:
-            longueur = direction.length()
-            direction.scale_to_length(min(longueur, self.vitesseMax))
-            self.rect.move_ip(direction * dt)
-            direction.scale_to_length(longueur)
+        if direction.length() != 0:
+            self.rect.move_ip(direction.normalize() * min(direction.length(), self.vitesseMax) * dt)
         else:
             self.rect.move_ip(direction * dt)
         
