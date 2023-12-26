@@ -14,30 +14,25 @@ class Joueur(py.sprite.Sprite):
 
     def update(self, dt):
         touchesAppuyes = py.key.get_pressed()
-        if self.verifierInput("haut", touchesAppuyes):
-            if self.vitesse.y > 0:
-                self.vitesse.y = max(self.vitesse.y - self.friction * dt, 0)
+        input = py.math.Vector2(self.verifierInput("droite", touchesAppuyes) - self.verifierInput("gauche", touchesAppuyes), self.verifierInput("bas", touchesAppuyes) - self.verifierInput("haut", touchesAppuyes))
+        if input.y:
+            if self.vitesse.y != 0 and sign(self.vitesse.y) != input.y:
+                self.vitesse.y = clamp(self.vitesse.y + self.friction * dt * input.y, 0, self.vitesse.y)
             else:
-                self.vitesse.y = max(self.vitesse.y - self.acceleration * dt, -self.vitesseMax)
-        elif self.verifierInput("bas", touchesAppuyes):
-            if self.vitesse.y < 0:
-                self.vitesse.y = max(self.vitesse.y + self.friction * dt, 0)
-            else:
-                self.vitesse.y = min(self.vitesse.y + self.acceleration * dt, self.vitesseMax)
+                self.vitesse.y = py.math.clamp(self.vitesse.y + self.acceleration * dt * input.y, -self.vitesseMax, self.vitesseMax)
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(self.vitesse.x, 0), self.friction * dt)
-        if self.verifierInput("gauche", touchesAppuyes):
-            if self.vitesse.x > 0:
-                self.vitesse.x = max(self.vitesse.x - self.friction * dt, 0)
+        
+        if input.x:
+            if self.vitesse.x != 0 and sign(self.vitesse.x) != input.x:
+                self.vitesse.x = clamp(self.vitesse.x + self.friction * dt * input.x, 0, self.vitesse.x)
             else:
-                self.vitesse.x = max(self.vitesse.x - self.acceleration * dt, -self.vitesseMax)
-        elif self.verifierInput("droite", touchesAppuyes):
-            if self.vitesse.x < 0:
-                self.vitesse.x = max(self.vitesse.x - self.friction * dt, 0)
-            else:
-                self.vitesse.x = min(self.vitesse.x + self.acceleration * dt, self.vitesseMax)
+                self.vitesse.x = py.math.clamp(self.vitesse.x + self.acceleration * dt * input.x, -self.vitesseMax, self.vitesseMax)
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
+        
+        if input.x != 0 and input.y != 0:
+            self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / 1.4)
         
         self.avance(self.vitesse, dt)
     
@@ -48,11 +43,22 @@ class Joueur(py.sprite.Sprite):
     def avance(self, direction, dt):
         if direction.length() != 0:
             self.rect.move_ip(direction.normalize() * min(direction.length(), self.vitesseMax) * dt)
-        else:
-            self.rect.move_ip(direction * dt)
-        
+    
     def verifierInput(self, action, touchesAppuyes):
         for touche in inputs[action]:
             if touchesAppuyes[touche]:
                 return True
         return False
+
+def clamp(n, p_min, p_max):
+    if p_max > p_min:
+        return min(max(n, p_min), p_max)
+    else:
+        return min(max(n, p_max), p_min)
+
+def sign(n):
+    if n < 0.0:
+        return -1
+    elif n > 0.0:
+        return 1
+    return 0
