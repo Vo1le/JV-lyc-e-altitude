@@ -39,15 +39,21 @@ class Joueur(py.sprite.Sprite):
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
         
-        self.avance(self.vitesse.x * dt, self.vitesse.y * dt)
+        self.avance(self.vitesse, dt)
     
     def movejoueur(self, x, y):
         self.rect.x = x
         self.rect.y = y
     
-    def avance(self, x, y):
-        self.rect.move_ip([x,y])
-    
+    def avance(self, direction, dt):
+        if direction.x != 0.0 and direction.y != 0.0:
+            longueur = direction.length()
+            direction.scale_to_length(min(longueur, self.vitesseMax))
+            self.rect.move_ip(direction * dt)
+            direction.scale_to_length(longueur)
+        else:
+            self.rect.move_ip(direction * dt)
+        
     def verifierInput(self, action, touchesAppuyes):
         for touche in inputs[action]:
             if touchesAppuyes[touche]:
