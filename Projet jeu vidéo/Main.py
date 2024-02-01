@@ -11,7 +11,7 @@ color = (255,255,255)
 ecran.fill(color)
 
 # // Set up du framerate //
-FPS = 30
+FPS = 60
 fpsClock = py.time.Clock()
 
 # // imports divers //
@@ -54,6 +54,7 @@ def main():
 # // fonction diverses //
 
 def Affichage(joueurdep):
+    ecran.fill(color)
     joueurdep.draw(ecran)
     py.display.update()
 
