@@ -1,29 +1,32 @@
 import pygame as py
-from inputs import inputs
+from inputs import verifierInput
+import math
 
-#Espace animation avec les listes.
-animation_idle= ["Images/Joueur-idle.png","Images/Joueur-idle.png"]
+RACINEDE2 = math.sqrt(2)
 
-animation_marche=["Images/Joueur-marche-1.png","Images/Joueur-marche-2.png"]
-
-#Variable pour animation
-a = 0
-framecounter20= 0
 
 class Joueur(py.sprite.Sprite):
-    def __init__(self, x,y):
-        py.sprite.Sprite.__init__(self)
-        self.image = py.image.load(animation_idle[0])
-        self.rect = self.image.get_rect()
+    def __init__(self, x, y):
+        self.rect = py.Rect(0, 0, 50, 100)
         self.rect.center = (x, y)
+
+        py.sprite.Sprite.__init__(self)
+        self.image = py.transform.scale(py.image.load("Images/Joueur-idle-1.png").convert_alpha(), (self.rect.width, self.rect.height))
         self.vitesse = py.math.Vector2(0, 0)
         self.vitesseMax = 250.0
-        self.acceleration = 500.0
+        self.acceleration = 750.0
         self.friction = 750.0
+
+        self.animations = {
+            "idle": {"frames": [py.transform.scale(py.image.load("Images/Joueur-idle-" + str(i) + ".png").convert_alpha(), (self.rect.width, self.rect.height)) for i in range(1, 2)], "max": 1, "speed": 0},
+            "marcheBas": {"frames": [py.transform.scale(py.image.load("Images/Joueur-marche-" + str(i) + ".png").convert_alpha(), (self.rect.width, self.rect.height)) for i in range(1, 3)], "max": 2, "speed": 3}
+        }
+        self.animation = "idle"
+        self.frameCourante = 0.0
 
     def update(self, dt):
         touchesAppuyes = py.key.get_pressed()
-        input = py.math.Vector2(self.verifierInput("droite", touchesAppuyes) - self.verifierInput("gauche", touchesAppuyes), self.verifierInput("bas", touchesAppuyes) - self.verifierInput("haut", touchesAppuyes))
+        input = py.math.Vector2(verifierInput(touchesAppuyes, "droite") - verifierInput(touchesAppuyes, "gauche"), verifierInput(touchesAppuyes, "bas") - verifierInput(touchesAppuyes, "haut"))
         if input.y:
             if self.vitesse.y != 0 and sign(self.vitesse.y) != input.y:
                 self.vitesse.y = clamp(self.vitesse.y + self.friction * dt * input.y, 0, self.vitesse.y)
@@ -31,7 +34,6 @@ class Joueur(py.sprite.Sprite):
                 self.vitesse.y = py.math.clamp(self.vitesse.y + self.acceleration * dt * input.y, -self.vitesseMax, self.vitesseMax)
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(self.vitesse.x, 0), self.friction * dt)
-            animation(self,animation_idle)
         
         if input.x:
             if self.vitesse.x != 0 and sign(self.vitesse.x) != input.x:
@@ -42,19 +44,12 @@ class Joueur(py.sprite.Sprite):
             self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
         
         if input.x != 0 and input.y != 0:
-            self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / 1.4)
+            self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / RACINEDE2)
             
         
         self.avance(self.vitesse, dt)
 
-        # Section du "frame limiter". ici on joue l'animation 3x par seconde car le jeu tourne a 60 fps et que l'on a 3 frames d'animation qui est pour m'instant notre standar animation (a voir)
-        global framecounter20
-        framecounter20 = framecounter20 + 1
-        if framecounter20 == 20:
-            if input.y:
-                animation(self,animation_marche)
-            framecounter20 = 0
-
+        self.updateAnimations(dt, input)
 
     def movejoueur(self, x, y):
         self.rect.x = x
@@ -63,21 +58,22 @@ class Joueur(py.sprite.Sprite):
     def avance(self, direction, dt):
         if direction.length() != 0:
             self.rect.move_ip(direction.normalize() * min(direction.length(), self.vitesseMax) * dt)
-    
-    def verifierInput(self, action, touchesAppuyes):
-        for touche in inputs[action]:
-            if touchesAppuyes[touche]:
-                return True
-        return False    
 
-def animation(self,listes): #Fonction animation avec listes= animation a jouer. Ici on parcour le liste en changeant les images.
-    global a
-    self.image = py.image.load(listes[a])
-    py.sprite.Sprite.update(self)
-    if a == len(listes)-1:
-        a = 0
-    else :
-        a = a + 1
+    def updateAnimations(self, dt, input):
+        if input.y > 0:
+            self.changeAnimation("marcheBas")
+        else:
+            self.changeAnimation("idle")
+        self.frameCourante += dt * self.animations[self.animation]["speed"]
+        if self.frameCourante >= self.animations[self.animation]["max"]:
+            self.frameCourante = 0.0
+        self.image = self.animations[self.animation]["frames"][math.floor(self.frameCourante)]
+    
+    def changeAnimation(self, anim: str):
+        if anim != self.animation:
+            self.animation = anim
+            self.frameCourante = 0.0
+            
     
 def clamp(n, p_min, p_max):
     if p_max > p_min:
@@ -91,5 +87,3 @@ def sign(n):
     elif n > 0.0:
         return 1
     return 0
-
-

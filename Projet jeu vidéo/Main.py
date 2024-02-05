@@ -15,7 +15,7 @@ FPS = 60
 fpsClock = py.time.Clock()
 
 # // imports divers //
-from inputs import inputs
+from inputs import verifierInputKey
 import sys
 
 # // Toutes les classes sont si dessous // 
@@ -37,10 +37,9 @@ def main():
 
         for event in py.event.get():
             if event.type == py.KEYDOWN:
-                for key in inputs["quit"]:
-                    if event.key == key:
-                        py.quit()
-                        sys.exit()
+                if verifierInputKey(event.key, "quit"):
+                    py.quit()
+                    sys.exit()
         
         # // mise a niveaux des objets du monde (joueur, pnj, ...)
         dt = fpsClock.get_time() / 1000
