@@ -1,4 +1,4 @@
-from pygame.locals import K_RIGHT, K_LEFT, K_DOWN, K_UP, K_ESCAPE, K_q, K_d, K_z, K_s
+from pygame.locals import *
 
 inputs = {
     "bas": [K_DOWN, K_s],
@@ -6,6 +6,8 @@ inputs = {
     "gauche": [K_LEFT, K_q],
     "droite": [K_RIGHT, K_d],
     "quit": [K_ESCAPE],
+    "zoom": [K_x],
+    "dezoom": [K_c]
 }
 
 def verifierInput(touchesAppuyes, action):

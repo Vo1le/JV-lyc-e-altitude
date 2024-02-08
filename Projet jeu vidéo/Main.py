@@ -24,22 +24,24 @@ import sys
 
 # // Toutes les classes sont si dessous // 
 from Joueur import Joueur
-from Environement import*
+from Environement import *
 
 def main():
     # // Espace dédié au diverses variables liée au fonctionnement du code //
     continuer = True
 
     # // ajout des sprites dans le jeu //
-    joueurdep = py.sprite.Group()
+    joueurdep = extendedGroup()
     joueur = Joueur(width//2,height//2)
     joueurdep.add(joueur)
 
-    Environments = py.sprite.Group()
-    petitcube = Cube(1000, 1000) 
-    petitcube2 = Cube(500, 500) 
+    Environments = extendedGroup()
+    petitcube = Cube(1000, 1000)
+    petitcube2 = Cube(500, 500)
     Environments.add(petitcube)
     Environments.add(petitcube2)
+
+    zoom = 0.7
 
     def camera():
         camera_x = width//2 - joueur.rect.centerx
@@ -61,27 +63,31 @@ def main():
                 if verifierInputKey(event.key, "quit"):
                     py.quit()
                     sys.exit()
-        
+                elif verifierInputKey(event.key, "zoom"):
+                    zoom += 0.2
+                elif verifierInputKey(event.key, "dezoom"):
+                    zoom -= 0.2
+                # un zoom négatif casse tout
+                zoom = py.math.clamp(zoom, 0.05, 10)
         
 
         # // mise a niveaux des objets du monde (joueur, pnj, ...)
         dt = fpsClock.get_time() / 1000
         joueurdep.update(dt)
-        camera()
+        # camera()
 
         # // Affichage //
-        Affichage(joueurdep,Environments)
+        Affichage(joueurdep, Environments, joueur.rect.topleft, zoom)
 
         fpsClock.tick(FPS)
 
 # // fonction diverses //
 
-def Affichage(joueurdep,Environments):
+def Affichage(joueurdep, Environments, positionJoueur, zoom):
     ecran.fill(color)
-    joueurdep.draw(ecran)
-    Environments.draw(ecran)
+    joueurdep.draw(ecran, positionJoueur, zoom)
+    Environments.draw(ecran, positionJoueur, zoom)
     
-    py.display.flip()
     py.display.update()
 
 if __name__ == "__main__":
