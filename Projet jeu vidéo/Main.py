@@ -37,8 +37,9 @@ def main():
 
     Environments = py.sprite.Group()
     petitcube = Cube(1000, 1000) 
+    petitcube2 = Cube(500, 500) 
     Environments.add(petitcube)
-
+    Environments.add(petitcube2)
 
     def camera():
         camera_x = width//2 - joueur.rect.centerx
@@ -46,7 +47,6 @@ def main():
         for object in Environments:
                 object.rect.x +=  camera_x
                 object.rect.y += camera_y
-
         joueur.rect.x +=  camera_x
         joueur.rect.y += camera_y
         

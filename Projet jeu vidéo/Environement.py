@@ -6,7 +6,7 @@ class Cube(py.sprite.Sprite):
         self.image = py.Surface((100, 100))
         self.image.fill((0, 0, 255))
         self.rect = self.image.get_rect()
-        self.draw = 0
+        self.rect.center = (x, y)
         
     def moves(self,camera_x, camera_y):
         self.rect.move(camera_x, camera_y)
