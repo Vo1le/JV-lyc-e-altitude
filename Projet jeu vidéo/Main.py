@@ -38,20 +38,12 @@ def main():
     Environments = extendedGroup()
     petitcube = Cube(1000, 1000)
     petitcube2 = Cube(500, 500)
+    mapjeu = Map(0, 0)
     Environments.add(petitcube)
+    Environments.add(mapjeu)
     Environments.add(petitcube2)
 
     zoom = 0.7
-
-    def camera():
-        camera_x = width//2 - joueur.rect.centerx
-        camera_y = height//2 - joueur.rect.centery
-        for object in Environments:
-                object.rect.x +=  camera_x
-                object.rect.y += camera_y
-        joueur.rect.x +=  camera_x
-        joueur.rect.y += camera_y
-        
     
     # // la boucle pour les evenements et autres //
     while continuer: 
@@ -85,9 +77,9 @@ def main():
 
 def Affichage(joueurdep, Environments, positionJoueur, zoom):
     ecran.fill(color)
-    joueurdep.draw(ecran, positionJoueur, zoom)
-    Environments.draw(ecran, positionJoueur, zoom)
     
+    Environments.draw(ecran, positionJoueur, zoom)
+    joueurdep.draw(ecran, positionJoueur, zoom)
     py.display.update()
 
 if __name__ == "__main__":

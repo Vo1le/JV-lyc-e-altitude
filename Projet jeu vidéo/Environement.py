@@ -12,6 +12,15 @@ class Cube(py.sprite.Sprite):
     def moves(self,camera_x, camera_y):
         self.rect.move(camera_x, camera_y)
 
+class Map(py.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = py.image.load("map.png")
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        
+    def moves(self,camera_x, camera_y):
+        self.rect.move(camera_x, camera_y)
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
 class extendedGroup(py.sprite.Group):
     # draw est une méthode de py.sprite.Group que je remplace par la mienne
