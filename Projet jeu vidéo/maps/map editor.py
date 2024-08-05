@@ -17,6 +17,9 @@ TILE_SIZE = 64
 WIDTH_MAP = 25 * TILE_SIZE
 HEIGHT_MAP = 20 * TILE_SIZE
 
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+
 if os.path.isfile("map.png"):
     map_surface = pygame.image.load("map.png")
 else:
@@ -24,6 +27,7 @@ else:
     map_surface.fill((255, 255, 255))
 
 FOLDER_PATH = "collisions"
+VIDE = "vide.jpg"
 
 def main():
 
@@ -34,10 +38,13 @@ def main():
             images[file] = pygame.transform.scale(pygame.image.load(os.path.join(FOLDER_PATH, file)), (TILE_SIZE, TILE_SIZE))
 
     TILE_MAP_FILE_NAME = "map.txt"
+    TILE_MAP_IMAGE_FILE_NAME = "map.png"
     TILE_MAP = load_map(TILE_MAP_FILE_NAME)
 
-    screen = pygame.display.set_mode(size=(800,600))
+    screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
     pygame.display.set_caption(TITLE)
+    FPS = 30
+    fpsClock = pygame.time.Clock()
 
     # variables pour le zoom
     zoom_factor = 1
@@ -63,7 +70,7 @@ def main():
                     pygame.quit()
                     sys.exit()
                 elif event.key == pygame.K_q:
-                    pygame.image.save(map_surface, "map.png")
+                    pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
                     save_map(TILE_MAP_FILE_NAME, TILE_MAP)
                 if event.key == pygame.K_z:
                     zoom_factor = 1
@@ -82,6 +89,9 @@ def main():
                             menu.dragging = img["key"]
                     dragging = True
                     last_mouse_pos = pygame.mouse.get_pos()
+                elif event.button == 2:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    menu.dragging = get_tile_from_map(TILE_MAP, (mouse_x - offset_x, mouse_y - offset_y), zoom_factor) or VIDE
                 elif event.button == 3:
                     if menu.dragging != -1:
                         placing_tile = True
@@ -121,8 +131,10 @@ def main():
 
         pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, WIDTH_MAP * zoom_factor, HEIGHT_MAP * zoom_factor), 10)
         
-        pygame.image.save(map_surface, "map.png")
+        pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
         pygame.display.flip()
+
+        fpsClock.tick(FPS)
 
     pygame.quit()
     sys.exit()
@@ -131,25 +143,40 @@ def main():
 def draw_tile_map(screen, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=0):
     for y, row in enumerate(TILE_MAP):
         for x, tile in enumerate(row):
-            tile_img = images[tile]
+            if not tile in images:
+                print("Il manque le fichier image: " + tile)
+                pygame.quit()
+                sys.exit()
             scaled_tile_size = TILE_SIZE * zoom_factor
-            scaled_image = pygame.transform.scale(tile_img, (scaled_tile_size,  scaled_tile_size))
-            screen.blit(scaled_image, (x * scaled_tile_size + offset_x, y * scaled_tile_size + offset_y))
+            screen_coords = (x * scaled_tile_size + offset_x, y * scaled_tile_size + offset_y)
+            if -TILE_SIZE < screen_coords[0] < SCREEN_WIDTH and -TILE_SIZE < screen_coords[1] < SCREEN_HEIGHT:
+                tile_img = images[tile]
+                scaled_image = pygame.transform.scale(tile_img, (scaled_tile_size,  scaled_tile_size))
+                screen.blit(scaled_image, screen_coords)
 
 def add_tile_to_map(TILE_MAP, images, key, coords, zoom_factor=1):
     x, y = coords
     scaled_tile = int(TILE_SIZE * zoom_factor)
     cell_x = int(x // scaled_tile)
     cell_y = int(y // scaled_tile)
-    if 0 < cell_x < WIDTH_MAP / TILE_SIZE - 1 and 0 < cell_y < HEIGHT_MAP / TILE_SIZE - 1:
+    if 0 <= cell_x < WIDTH_MAP / TILE_SIZE and 0 <= cell_y < HEIGHT_MAP / TILE_SIZE:
         map_surface.fill((255, 255, 255), (cell_x * TILE_SIZE, cell_y * TILE_SIZE, TILE_SIZE, TILE_SIZE))
         map_surface.blit(images[key], (cell_x * TILE_SIZE, cell_y * TILE_SIZE))
         TILE_MAP[cell_y][cell_x] = key
+
+def get_tile_from_map(TILE_MAP, coords, zoom_factor=1):
+    x, y = coords
+    scaled_tile = int(TILE_SIZE * zoom_factor)
+    cell_x = int(x // scaled_tile)
+    cell_y = int(y // scaled_tile)
+    if 0 < cell_x < WIDTH_MAP / TILE_SIZE - 1 and 0 < cell_y < HEIGHT_MAP / TILE_SIZE - 1:
+        return TILE_MAP[cell_y][cell_x]
 
 
 class Menu:
     def __init__(self, images: dict):
         self.menu_image = pygame.image.load("menu.png")
+        self.menu_image.set_alpha(200)
         self.edit_image = pygame.image.load("edit.png")
         self.export_image = pygame.image.load("export.png")
         self.zoom_image = pygame.image.load("zoom.png")
@@ -192,7 +219,7 @@ def load_map(file_name):
         with open(file_name, "rb") as f:
             TILE_MAP = pickle.load(f)
     else:
-        TILE_MAP = [["vide.jpg" for _ in range(WIDTH_MAP // TILE_SIZE)] for _ in range(HEIGHT_MAP // TILE_SIZE)]
+        TILE_MAP = [[VIDE for _ in range(WIDTH_MAP // TILE_SIZE)] for _ in range(HEIGHT_MAP // TILE_SIZE)]
     return TILE_MAP
 
 def save_map(file_name, TILE_MAP):
