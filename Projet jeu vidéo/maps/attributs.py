@@ -1,6 +1,6 @@
-# mur: 1
+MUR = 1
 attributs = {
-    "wall.png": [1],
+    "wall.png": [MUR],
     "heart.png": [],
     "vide.jpg": []
 }

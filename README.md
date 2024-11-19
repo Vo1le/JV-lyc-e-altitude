@@ -3,7 +3,7 @@
 
 ## Pour installer python et pygame:
 
-Verifiez si vous avez déjà Python d'installé en lancant la commande "python --version" dans un terminal (ou powershell sous Windows). Ceci vous affichera la version de Python qui est installé sur votre ordinateur. Si le premier chiffre du retour et un "2" (ex: Python 2.7.3) alors vous devez télécharger un eversion plus récente: Python 3. Si vous recevez une erreur, c'est que python n'est pas installé sur votre ordinateur. Dans ces deux cas, procédez à la prochaine étape. Si le retour commence par "Python 3" alors vous avez la bonne version installé et vous pouvez passer directement a l'étape "Pour installer le code"  
+Verifiez si vous avez déjà Python d'installé en lancant la commande "python --version" dans un terminal (ou powershell sous Windows). Ceci vous affichera la version de Python qui est installé sur votre ordinateur. Si le premier chiffre du retour et un "2" (ex: Python 2.7.3) alors vous devez télécharger un eversion plus récente: Python 3. Si vous recevez une erreur, c'est que python n'est pas installé sur votre ordinateur. Dans ces deux cas, procédez à la prochaine étape. Si le retour commence par "Python 3" alors vous avez la bonne version installé et vous pouvez passer directement a l'étape pour installer pygame  
 
 Allez sur le site officiel : https://www.python.org/downloads/  
 

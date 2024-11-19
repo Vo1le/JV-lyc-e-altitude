@@ -31,6 +31,9 @@ else:
     map_surface.fill((255, 255, 255))
 
 FOLDER_PATH = "collisions"
+TILE_MAP_FILE_NAME = "map.txt"
+TILE_MAP_RELOADABLE_FILE_NAME = "map_reload.txt"
+TILE_MAP_IMAGE_FILE_NAME = "map.png"
 
 def main():
 
@@ -40,9 +43,6 @@ def main():
         if os.path.isfile(os.path.join(FOLDER_PATH, file)):
             images[file] = pygame.transform.scale(pygame.image.load(os.path.join(FOLDER_PATH, file)), (TILE_SIZE, TILE_SIZE))
 
-    TILE_MAP_FILE_NAME = "map.txt"
-    TILE_MAP_RELOADABLE_FILE_NAME = "map_reload.txt"
-    TILE_MAP_IMAGE_FILE_NAME = "map.png"
     TILE_MAP = load_map(TILE_MAP_RELOADABLE_FILE_NAME)
 
     screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
@@ -65,15 +65,17 @@ def main():
 
     placing_tile = False
 
+    map_sauvegarde = True
+
     # loop de jeu    
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                    sys.exit()
+                    dialogue_quitter(TILE_MAP, map_sauvegarde)
                 elif event.key == pygame.K_q:
+                    map_sauvegarde = True
                     pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
                     save_map(TILE_MAP_FILE_NAME, TILE_MAP)
                     save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
@@ -85,7 +87,7 @@ def main():
                         menu.dragging = -1
             
             if event.type == pygame.QUIT:
-                running = False
+                dialogue_quitter(TILE_MAP, map_sauvegarde)
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -100,6 +102,7 @@ def main():
                 elif event.button == 3:
                     if menu.dragging != -1:
                         placing_tile = True
+                        map_sauvegarde = False
             
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
@@ -193,7 +196,6 @@ def get_tile_from_map(TILE_MAP, coords, zoom_factor=1):
     if 0 < cell_x < WIDTH_MAP / TILE_SIZE - 1 and 0 < cell_y < HEIGHT_MAP / TILE_SIZE - 1:
         return TILE_MAP[cell_y][cell_x]
 
-
 class Menu:
     def __init__(self, images: dict):
         self.menu_image = pygame.image.load("menu.png")
@@ -252,6 +254,22 @@ def save_map(file_name, TILE_MAP, reloadable=True):
 
 def appliquer_attributs(tile_name):
     return attributs[tile_name]
+
+def dialogue_quitter(TILE_MAP, map_sauvegarde):
+    pygame.quit()
+    if not map_sauvegarde:
+        s = ""
+        for i in range(5):
+            s = input("Vous avez quitté l'éditeur de niveau sans sauvegarder, voulez vous le faire maintenant? (oui/non) ").lower()
+            if s == "oui":
+                save_map(TILE_MAP_FILE_NAME, TILE_MAP)
+                save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
+                break
+            if s == "non":
+                break
+            else:
+                print("Réponse doit etre soit oui soit non, tentatives restantes avant termination du program:", 4 - i)
+    sys.exit()
 
 if __name__ == "__main__":
     main()
