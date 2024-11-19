@@ -3,6 +3,8 @@ import sys
 import os
 import pickle
 
+from attributs import attributs, VIDE
+
 pygame.init()
 
 TITLE = "Tile Map System"
@@ -14,8 +16,10 @@ MAX_ZOOM = 10
 
 #Paramétres de la map
 TILE_SIZE = 64
-WIDTH_MAP = 25 * TILE_SIZE
-HEIGHT_MAP = 20 * TILE_SIZE
+GAME_SCREEN_WIDTH = 25 * TILE_SIZE
+GAME_SCREEN_HEIGHT = 14 * TILE_SIZE
+WIDTH_MAP = GAME_SCREEN_WIDTH * 3
+HEIGHT_MAP = GAME_SCREEN_HEIGHT * 2
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -27,7 +31,6 @@ else:
     map_surface.fill((255, 255, 255))
 
 FOLDER_PATH = "collisions"
-VIDE = "vide.jpg"
 
 def main():
 
@@ -38,8 +41,9 @@ def main():
             images[file] = pygame.transform.scale(pygame.image.load(os.path.join(FOLDER_PATH, file)), (TILE_SIZE, TILE_SIZE))
 
     TILE_MAP_FILE_NAME = "map.txt"
+    TILE_MAP_RELOADABLE_FILE_NAME = "map_reload.txt"
     TILE_MAP_IMAGE_FILE_NAME = "map.png"
-    TILE_MAP = load_map(TILE_MAP_FILE_NAME)
+    TILE_MAP = load_map(TILE_MAP_RELOADABLE_FILE_NAME)
 
     screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
     pygame.display.set_caption(TITLE)
@@ -72,6 +76,7 @@ def main():
                 elif event.key == pygame.K_q:
                     pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
                     save_map(TILE_MAP_FILE_NAME, TILE_MAP)
+                    save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
                 if event.key == pygame.K_z:
                     zoom_factor = 1
                 if event.key == pygame.K_a:
@@ -131,8 +136,7 @@ def main():
 
         pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, WIDTH_MAP * zoom_factor, HEIGHT_MAP * zoom_factor), 10)
         
-        pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
-        pygame.display.flip()
+        pygame.display.update()
 
         fpsClock.tick(FPS)
 
@@ -141,18 +145,35 @@ def main():
 
 # dessiner la map
 def draw_tile_map(screen, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=0):
+    scaled_tile_size = TILE_SIZE * zoom_factor
+    scaled_images = {}
+    if zoom_factor != 1:
+        for img in images:
+            scaled_images[img] = pygame.transform.scale(images[img], (scaled_tile_size, scaled_tile_size))
+    else:
+        scaled_images = images
     for y, row in enumerate(TILE_MAP):
         for x, tile in enumerate(row):
             if not tile in images:
                 print("Il manque le fichier image: " + tile)
                 pygame.quit()
                 sys.exit()
-            scaled_tile_size = TILE_SIZE * zoom_factor
             screen_coords = (x * scaled_tile_size + offset_x, y * scaled_tile_size + offset_y)
             if -TILE_SIZE < screen_coords[0] < SCREEN_WIDTH and -TILE_SIZE < screen_coords[1] < SCREEN_HEIGHT:
-                tile_img = images[tile]
-                scaled_image = pygame.transform.scale(tile_img, (scaled_tile_size,  scaled_tile_size))
-                screen.blit(scaled_image, screen_coords)
+                tile_img = scaled_images[tile]
+                screen.blit(tile_img, screen_coords)
+    
+    for x in range(0, WIDTH_MAP, GAME_SCREEN_WIDTH):
+        screen_coords = (x * zoom_factor + offset_x, offset_y)
+        screen_coords_end = (x * zoom_factor + offset_x, HEIGHT_MAP * zoom_factor + offset_y)
+        pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
+
+    for y in range(0, HEIGHT_MAP, GAME_SCREEN_HEIGHT):
+        screen_coords = (offset_x, y * zoom_factor + offset_y)
+        screen_coords_end = (WIDTH_MAP * zoom_factor + offset_x, y * zoom_factor + offset_y)
+        pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
+    
+
 
 def add_tile_to_map(TILE_MAP, images, key, coords, zoom_factor=1):
     x, y = coords
@@ -222,10 +243,15 @@ def load_map(file_name):
         TILE_MAP = [[VIDE for _ in range(WIDTH_MAP // TILE_SIZE)] for _ in range(HEIGHT_MAP // TILE_SIZE)]
     return TILE_MAP
 
-def save_map(file_name, TILE_MAP):
+def save_map(file_name, TILE_MAP, reloadable=True):
+    tile_map = TILE_MAP
+    if reloadable:
+        tile_map = [map(appliquer_attributs, row) for row in TILE_MAP]
     with open(file_name, "wb") as f:
-        pickle.dump(TILE_MAP, f)
+        pickle.dump(tile_map, f)
 
+def appliquer_attributs(tile_name):
+    return attributs[tile_name]
 
 if __name__ == "__main__":
     main()

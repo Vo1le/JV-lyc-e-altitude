@@ -15,7 +15,7 @@ class Cube(py.sprite.Sprite):
 class Map(py.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = py.image.load("map.png")
+        self.image = py.image.load("maps/map.png")
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         

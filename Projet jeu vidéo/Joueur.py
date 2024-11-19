@@ -15,7 +15,7 @@ class Joueur(py.sprite.Sprite):
         self.vitesse = py.math.Vector2(0, 0)
         self.vitesseMax = 250.0
         self.acceleration = 750.0
-        self.friction = 750.0
+        self.friction = 1000.0
 
         self.animations = {
             "idle": {"frames": [py.transform.scale(py.image.load("Images/Joueur-idle-" + str(i) + ".png").convert_alpha(), (self.rect.width, self.rect.height)) for i in range(1, 2)], "max": 1, "speed": 0},

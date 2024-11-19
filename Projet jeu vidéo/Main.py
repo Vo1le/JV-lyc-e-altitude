@@ -32,16 +32,12 @@ def main():
 
     # // ajout des sprites dans le jeu //
     joueurdep = extendedGroup()
-    joueur = Joueur(width//2,height//2)
+    joueur = Joueur(-1000, -400)
     joueurdep.add(joueur)
 
     Environments = extendedGroup()
-    petitcube = Cube(1000, 1000)
-    petitcube2 = Cube(500, 500)
     mapjeu = Map(0, 0)
-    Environments.add(petitcube)
     Environments.add(mapjeu)
-    Environments.add(petitcube2)
 
     zoom = 0.7
     
