@@ -20,7 +20,6 @@ fpsClock = py.time.Clock()
 
 # // imports divers //
 from inputs import verifierInputKey
-import sys
 
 # // Toutes les classes sont si dessous // 
 from Joueur import Joueur
@@ -32,7 +31,7 @@ def main():
 
     # // ajout des sprites dans le jeu //
     joueurdep = extendedGroup()
-    joueur = Joueur(-1000, -400)
+    joueur = Joueur(0, 0)
     joueurdep.add(joueur)
 
     Environments = extendedGroup()
@@ -61,7 +60,7 @@ def main():
 
         # // mise a niveaux des objets du monde (joueur, pnj, ...)
         dt = fpsClock.get_time() / 1000
-        joueurdep.update(dt)
+        joueurdep.update(dt, mapjeu)
         # camera()
 
         # // Affichage //

@@ -3,7 +3,7 @@ import sys
 import os
 import pickle
 
-from attributs import attributs, VIDE
+from attributs import *
 
 pygame.init()
 
@@ -15,11 +15,6 @@ MIN_ZOOM = 0.2
 MAX_ZOOM = 10
 
 #Paramétres de la map
-TILE_SIZE = 64
-GAME_SCREEN_WIDTH = 25 * TILE_SIZE
-GAME_SCREEN_HEIGHT = 14 * TILE_SIZE
-WIDTH_MAP = GAME_SCREEN_WIDTH * 3
-HEIGHT_MAP = GAME_SCREEN_HEIGHT * 2
 NUM_LAYERS = 5
 
 SCREEN_WIDTH = 800
@@ -304,12 +299,15 @@ def load_map(file_name):
         TILE_MAP = [[[VIDE for _ in range(WIDTH_MAP // TILE_SIZE)] for _ in range(HEIGHT_MAP // TILE_SIZE)] for _ in range(NUM_LAYERS)]
     return TILE_MAP
 
-def save_map(file_name, TILE_MAP, reloadable=True):
+def save_map(file_name, TILE_MAP, gamemap=True):
     tile_map = TILE_MAP
-    if reloadable:
-        tile_map = [[map(appliquer_attributs, row) for row in layer] for layer in TILE_MAP]
+    if gamemap:
+        tile_map = [[list(map(appliquer_attributs, row)) for row in layer] for layer in TILE_MAP]
     with open(file_name, "wb") as f:
         pickle.dump(tile_map, f)
+
+def appliquer_attributs(tile_name):
+    return attributs[tile_name]
 
 def save_map_image(TILE_MAP, images):
     map_surface.fill((255, 255, 255))
@@ -318,13 +316,10 @@ def save_map_image(TILE_MAP, images):
             for x, tile in enumerate(row):
                 map_surface.blit(images[tile], (x * TILE_SIZE, y * TILE_SIZE))
 
-def appliquer_attributs(tile_name):
-    return attributs[tile_name]
-
 def dialogue_quitter(TILE_MAP, map_sauvegarde, images):
     pygame.quit()
-    print("\n\n")
     if not map_sauvegarde:
+        print("\n\n")
         s = ""
         for i in range(5):
             s = input("Vous avez quitté l'éditeur de niveau sans sauvegarder, voulez vous le faire maintenant? (oui/non) ").lower()

@@ -1,15 +1,19 @@
 import pygame as py
 import math
+import pickle
+import os
+from maps.attributs import *
 
-class Cube(py.sprite.Sprite):
+
+class Wall(py.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = py.Surface((100, 100))
-        self.image.fill((0, 0, 255))
-        self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
-        
-    def moves(self,camera_x, camera_y):
+        self.image = py.Surface((TILE_SIZE, TILE_SIZE))
+        self.image.fill((0, 0, 0, 0))
+        self.rect = py.Rect(0, 0, TILE_SIZE, TILE_SIZE)
+        self.rect.topleft = (x, y)
+    
+    def moves(self, camera_x, camera_y):
         self.rect.move(camera_x, camera_y)
 
 class Map(py.sprite.Sprite):
@@ -17,10 +21,31 @@ class Map(py.sprite.Sprite):
         super().__init__()
         self.image = py.image.load("maps/map.png")
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.topleft = (x, y)
+        self.tile_map = self.load_map("maps/map.txt")
+        self.apply_attributs()
         
-    def moves(self,camera_x, camera_y):
+    def moves(self, camera_x, camera_y):
         self.rect.move(camera_x, camera_y)
+    
+    def load_map(self, file_name):
+        if os.path.isfile(file_name):
+            with open(file_name, "rb") as f:
+                return pickle.load(f)
+        else:
+            print("Pas de fichier map de nom: " + file_name)
+            raise FileNotFoundError
+    
+    def apply_attributs(self):
+        self.collisions = extendedGroup()
+        for layer in self.tile_map:
+            for y, row in enumerate(layer):
+                for x, tile_attributs in enumerate(row):
+                    if MUR in tile_attributs:
+                        wall = Wall(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top)
+                        wall.add(self.collisions)
+
+
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
 class extendedGroup(py.sprite.Group):
     # draw est une méthode de py.sprite.Group que je remplace par la mienne
@@ -50,3 +75,10 @@ class extendedGroup(py.sprite.Group):
                 if -spr.rect.width < pos[0] < windowSize[0] and -spr.rect.height < pos[1] < windowSize[1]:
                     self.spritedict[spr] = surface_blit(py.transform.scale(spr.image, (math.ceil(spr.rect.width * zoom), math.ceil(spr.rect.height * zoom))), pos)
         self.lostsprites = []
+    
+    def __str__(self) -> str:
+        s = ""
+        sprites = self.sprites()
+        for spr in sprites:
+            s += str(spr.rect.center) + "; "
+        return s

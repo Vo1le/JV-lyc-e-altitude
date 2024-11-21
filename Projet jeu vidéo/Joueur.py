@@ -24,7 +24,7 @@ class Joueur(py.sprite.Sprite):
         self.animation = "idle"
         self.frameCourante = 0.0
 
-    def update(self, dt):
+    def update(self, dt, mapjeu):
         touchesAppuyes = py.key.get_pressed()
         input = py.math.Vector2(verifierInput(touchesAppuyes, "droite") - verifierInput(touchesAppuyes, "gauche"), verifierInput(touchesAppuyes, "bas") - verifierInput(touchesAppuyes, "haut"))
         if input.y:
@@ -47,7 +47,7 @@ class Joueur(py.sprite.Sprite):
             self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / RACINEDE2)
             
         
-        self.avance(self.vitesse, dt)
+        self.avance(dt, mapjeu)
 
         self.updateAnimations(dt, input)
 
@@ -55,9 +55,22 @@ class Joueur(py.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
     
-    def avance(self, direction, dt):
-        if direction.length() != 0:
-            self.rect.move_ip(direction.normalize() * min(direction.length(), self.vitesseMax) * dt)
+    def avance(self, dt, mapjeu):
+        if self.vitesse.length() != 0:
+            dir = self.vitesse.normalize()
+            self.avance_une_direction(dt, mapjeu, py.Vector2(dir.x, 0))
+            self.avance_une_direction(dt, mapjeu, py.Vector2(0, dir.y))
+            
+    def avance_une_direction(self, dt, mapjeu, dir):
+        rect_avant = self.rect.copy()
+        self.rect.move_ip(dir * min(self.vitesse.length(), self.vitesseMax) * dt)
+        collision = py.sprite.spritecollideany(self, mapjeu.collisions)
+        if collision:
+            if dir.x:
+                self.vitesse.x = 0.0
+            else:
+                self.vitesse.y = 0.0
+            self.rect = rect_avant.copy()
 
     def updateAnimations(self, dt, input):
         if input.y > 0:
