@@ -2,7 +2,7 @@ MUR = 1
 attributs = {
     "wall.png": [MUR],
     "heart.png": [],
-    "vide.jpg": []
+    "vide.png": []
 }
 # case par defaut
-VIDE = "vide.jpg"
+VIDE = "vide.png"
