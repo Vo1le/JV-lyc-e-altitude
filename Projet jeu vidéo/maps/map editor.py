@@ -67,9 +67,14 @@ def main():
 
     map_sauvegarde = True
 
+    historique_changements = []
+    changements_max = 10
+    dernier_tuile_placee_coords = False
+
     # loop de jeu    
     running = True
     while running:
+        touches_appuyes = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -79,12 +84,20 @@ def main():
                     pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
                     save_map(TILE_MAP_FILE_NAME, TILE_MAP)
                     save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
-                if event.key == pygame.K_z:
-                    zoom_factor = 1
                 if event.key == pygame.K_a:
                     menu.visible = not menu.visible
                     if not menu.visible:
                         menu.dragging = -1
+                if touches_appuyes[pygame.K_LCTRL] or touches_appuyes[pygame.K_RCTRL]:
+                    if event.key == pygame.K_z:
+                        if len(historique_changements) > 0:
+                            changement = historique_changements[0]
+                            add_tile_to_map(TILE_MAP, images, changement["tuile"], changement["pos"], zoom_factor)
+                            historique_changements.pop(0)
+                else:
+                    if event.key == pygame.K_z:
+                        zoom_factor = 1
+
             
             if event.type == pygame.QUIT:
                 dialogue_quitter(TILE_MAP, map_sauvegarde)
@@ -131,7 +144,21 @@ def main():
 
         if placing_tile:
             x, y = pygame.mouse.get_pos()
-            add_tile_to_map(TILE_MAP, images, menu.dragging, (x - offset_x, y - offset_y), zoom_factor)
+            coords = (x - offset_x, y - offset_y)
+            if dernier_tuile_placee_coords != coords:
+                dernier_tuile_placee_coords = coords
+                tuile = get_tile_from_map(TILE_MAP, coords, zoom_factor) or VIDE
+                if tuile != menu.dragging:
+                    changement = {
+                        "pos": coords,
+                        "tuile": tuile
+                    }
+                    historique_changements.insert(0, changement)
+                    if len(historique_changements) > changements_max:
+                        historique_changements.pop()
+                    add_tile_to_map(TILE_MAP, images, menu.dragging, coords, zoom_factor)
+        else:
+            dernier_tuile_placee_coords = False
 
         draw_tile_map(screen, TILE_MAP, images, zoom_factor, offset_x, offset_y)
 
@@ -257,6 +284,7 @@ def appliquer_attributs(tile_name):
 
 def dialogue_quitter(TILE_MAP, map_sauvegarde):
     pygame.quit()
+    print("\n\n")
     if not map_sauvegarde:
         s = ""
         for i in range(5):
@@ -265,6 +293,7 @@ def dialogue_quitter(TILE_MAP, map_sauvegarde):
                 save_map(TILE_MAP_FILE_NAME, TILE_MAP)
                 save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
                 break
+            print()
             if s == "non":
                 break
             else:
