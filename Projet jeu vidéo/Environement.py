@@ -8,13 +8,10 @@ from maps.attributs import *
 class Wall(py.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = py.Surface((TILE_SIZE, TILE_SIZE))
-        self.image.fill((0, 0, 0, 0))
+        """ self.image = py.Surface((TILE_SIZE, TILE_SIZE))
+        self.image.fill((0, 0, 0, 0)) """
         self.rect = py.Rect(0, 0, TILE_SIZE, TILE_SIZE)
         self.rect.topleft = (x, y)
-    
-    def moves(self, camera_x, camera_y):
-        self.rect.move(camera_x, camera_y)
 
 class Map(py.sprite.Sprite):
     def __init__(self, x, y):
@@ -24,9 +21,6 @@ class Map(py.sprite.Sprite):
         self.rect.topleft = (x, y)
         self.tile_map = self.load_map("maps/map.txt")
         self.apply_attributs()
-        
-    def moves(self, camera_x, camera_y):
-        self.rect.move(camera_x, camera_y)
     
     def load_map(self, file_name):
         if os.path.isfile(file_name):

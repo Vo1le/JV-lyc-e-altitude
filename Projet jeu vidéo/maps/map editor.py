@@ -21,6 +21,7 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
 FOLDER_PATH = "collisions"
+TILE_MAP_FOLDER_NAME = "tilemaps"
 TILE_MAP_FILE_NAME = "map.txt"
 TILE_MAP_RELOADABLE_FILE_NAME = "map_reload.txt"
 TILE_MAP_IMAGE_FILE_NAME = "map.png"
@@ -35,11 +36,31 @@ else:
 
 def main():
 
+    screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
+    pygame.display.set_caption(TITLE)
+    FPS = 30
+    fpsClock = pygame.time.Clock()
+
     # Set up des images
     images = {}
     for file in os.listdir(FOLDER_PATH):
         if os.path.isfile(os.path.join(FOLDER_PATH, file)):
             images[file] = pygame.transform.scale(pygame.image.load(os.path.join(FOLDER_PATH, file)), (TILE_SIZE, TILE_SIZE))
+    for file in os.listdir(TILE_MAP_FOLDER_NAME):
+        if os.path.isfile(os.path.join(TILE_MAP_FOLDER_NAME, file)):
+            if file in tile_maps.keys():
+                img = pygame.image.load(os.path.join(TILE_MAP_FOLDER_NAME, file)).convert_alpha()
+                size = tile_maps[file]["tile_size"]
+                for i, atlas in enumerate(tile_maps[file]["attributs"]):
+                    for y, row in enumerate(atlas):
+                        for x, _ in enumerate(row):
+                            surface = pygame.Surface((size, size)).convert_alpha()
+                            surface.fill(pygame.Color(0, 0, 0, 0))
+                            surface.blit(img, (0, 0), (x * size, y * size, size, size))
+                            img_name = file + "::" + str(i) + "::" + str(x) + ";" + str(y)
+                            images[img_name] = pygame.transform.scale(surface, (TILE_SIZE, TILE_SIZE))
+            else:
+                print("tile map " + file + " n'est pas décrite dans attributs.py")
     images_faded = {}
     for image_name in images:
         img: pygame.Surface = images[image_name].copy()
@@ -48,11 +69,6 @@ def main():
     
     layers = load_map(TILE_MAP_RELOADABLE_FILE_NAME)
     current_layer = 0
-
-    screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
-    pygame.display.set_caption(TITLE)
-    FPS = 30
-    fpsClock = pygame.time.Clock()
 
     # variables pour le zoom
     zoom_factor = 1
@@ -101,7 +117,7 @@ def main():
                     if event.key == pygame.K_z:
                         if len(historique_changements) > 0:
                             changement = historique_changements[0]
-                            add_tile_to_map(layers[changement["layer"]], images, changement["tuile"], changement["pos"], zoom_factor)
+                            add_tile_to_map(layers[changement["layer"]], changement["tuile"], changement["pos"], zoom_factor)
                             historique_changements.pop(0)
                 else:
                     if event.key == pygame.K_z:
@@ -166,7 +182,7 @@ def main():
                     historique_changements.insert(0, changement)
                     if len(historique_changements) > changements_max:
                         historique_changements.pop()
-                    add_tile_to_map(layers[current_layer], images, menu.dragging, coords, zoom_factor)
+                    add_tile_to_map(layers[current_layer], menu.dragging, coords, zoom_factor)
         else:
             dernier_tuile_placee_coords = False
 
@@ -186,9 +202,9 @@ def main():
             screen_coords_end = (WIDTH_MAP * zoom_factor + offset_x, y * zoom_factor + offset_y)
             pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
 
-        menu.draw(screen)
-
         pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, WIDTH_MAP * zoom_factor, HEIGHT_MAP * zoom_factor), 10)
+
+        menu.draw(screen)
         
         current_layer_img = FONT.render("couche: " + str(current_layer), True, (0, 100, 100))
 
@@ -222,7 +238,7 @@ def draw_tile_map(screen, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=
                 screen.blit(tile_img, screen_coords)
 
 
-def add_tile_to_map(TILE_MAP, images, key, coords, zoom_factor=1):
+def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1):
     x, y = coords
     scaled_tile = int(TILE_SIZE * zoom_factor)
     cell_x = int(x // scaled_tile)
@@ -271,12 +287,11 @@ class Menu:
                 self.collisionRects = []
             for key in self.collisionList:
                 img: pygame.Surface = self.collisionList[key]
-                rect = screen.blit(img, (offset_x, self.offset_y + y))
-                if y + img.get_height() < self.menu_image.get_height():
-                    y += img.get_height()
+                if y + TILE_SIZE * 2 < self.menu_image.get_height():
+                    y += TILE_SIZE
                 else:
-                    offset_x += 50
-                    y = img.get_height()
+                    offset_x += TILE_SIZE
+                    y = TILE_SIZE
                 if key == VIDE:
                     pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(offset_x, self.offset_y + y - img.get_height(), TILE_SIZE, TILE_SIZE))
                 rect = screen.blit(img, (offset_x, self.offset_y + y - img.get_height()))
@@ -306,8 +321,26 @@ def save_map(file_name, TILE_MAP, gamemap=True):
     with open(file_name, "wb") as f:
         pickle.dump(tile_map, f)
 
-def appliquer_attributs(tile_name):
-    return attributs[tile_name]
+def appliquer_attributs(tile_name: str):
+    if tile_name in attributs:
+        return attributs[tile_name]
+    else:
+        sep = tile_name.find("::")
+        if sep == -1:
+            print("Tuile non trouvée: " + tile_name)
+            return []
+        start = tile_name[:sep]
+        if start in tile_maps:
+            end = tile_name[sep + 2:]
+            sep = end.find("::")
+            atlas_num = end[:sep]
+            pos = end[sep + 2:]
+            sep = pos.find(";")
+            return tile_maps[start]["attributs"][int(atlas_num)][int(pos[sep + 1:])][int(pos[:sep])]
+        else:
+            print("Tuile non trouvée (trouvé ::): " + tile_name)
+            return []
+
 
 def save_map_image(TILE_MAP, images):
     map_surface.fill((255, 255, 255))
