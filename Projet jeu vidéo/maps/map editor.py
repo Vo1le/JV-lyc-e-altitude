@@ -106,7 +106,7 @@ def main():
                     if event.key == pygame.K_z:
                         if len(historique_changements) > 0:
                             changement = historique_changements[0]
-                            add_tile_to_map(layers[current_layer], images, changement["tuile"], changement["pos"], zoom_factor)
+                            add_tile_to_map(layers[changement["layer"]], images, changement["tuile"], changement["pos"], zoom_factor)
                             historique_changements.pop(0)
                 else:
                     if event.key == pygame.K_z:
@@ -165,7 +165,8 @@ def main():
                 if tuile != menu.dragging:
                     changement = {
                         "pos": coords,
-                        "tuile": tuile
+                        "tuile": tuile,
+                        "layer": current_layer
                     }
                     historique_changements.insert(0, changement)
                     if len(historique_changements) > changements_max:
