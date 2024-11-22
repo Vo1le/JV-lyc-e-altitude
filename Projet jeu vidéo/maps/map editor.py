@@ -159,11 +159,17 @@ def main():
                     last_mouse_pos = (mouse_x, mouse_y)
             
             elif event.type == pygame.MOUSEWHEEL:
-                if event.y > 0:
-                    zoom_factor = min(zoom_factor + zoom_speed, MAX_ZOOM)
-                    
-                elif event.y < 0:
-                    zoom_factor = max(zoom_factor - zoom_speed, MIN_ZOOM)
+                x, y = pygame.mouse.get_pos()
+                if menu.rect.collidepoint(x, y):
+                    if event.y > 0:
+                        menu.y_scroll = min(menu.y_scroll + menu.scroll_speed, menu.offset_y * 2)
+                    elif event.y < 0:
+                        menu.y_scroll -= menu.scroll_speed
+                else:
+                    if event.y > 0:
+                        zoom_factor = min(zoom_factor + zoom_speed, MAX_ZOOM)
+                    elif event.y < 0:
+                        zoom_factor = max(zoom_factor - zoom_speed, MIN_ZOOM)
         
         screen.fill(BG_COLOR)
 
@@ -269,10 +275,12 @@ class Menu:
 
         self.collisionList = images
 
-        self.initialized_rects = False
-
         self.offset_y = 50
         self.vide_color = (100, 100, 100)
+        self.rect = self.menu_image.get_rect()
+        self.rect.topleft = (0, self.offset_y)
+        self.y_scroll = self.offset_y * 2
+        self.scroll_speed = 20.0
     
     def draw(self, screen: pygame.Surface):
         screen.blit(self.edit_image, (0, 0))
@@ -280,31 +288,35 @@ class Menu:
         screen.blit(self.zoom_image, (150, 0))
 
         offset_x = 0
-        y = 0
+        y = self.y_scroll
         if self.visible:
             screen.blit(self.menu_image, (0, self.offset_y))
-            if not self.initialized_rects:
-                self.collisionRects = []
+            self.collisionRects = []
             for key in self.collisionList:
                 img: pygame.Surface = self.collisionList[key]
-                if y + TILE_SIZE * 2 < self.menu_image.get_height():
+                """ if y + TILE_SIZE * 2 < self.menu_image.get_height():
                     y += TILE_SIZE
                 else:
                     offset_x += TILE_SIZE
-                    y = TILE_SIZE
-                if key == VIDE:
-                    pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(offset_x, self.offset_y + y - img.get_height(), TILE_SIZE, TILE_SIZE))
-                rect = screen.blit(img, (offset_x, self.offset_y + y - img.get_height()))
-                if not self.initialized_rects:
+                    y = self.y_scroll """
+                pos = (offset_x, self.offset_y + y - img.get_height())
+                if self.offset_y < pos[1] < SCREEN_HEIGHT:
+                    if key == VIDE:
+                        pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(pos, (TILE_SIZE, TILE_SIZE)))
+                    rect = screen.blit(img, pos)
                     self.collisionRects.append({"image": img, "rect": rect, "key": key})
+                
+                if offset_x + TILE_SIZE < self.menu_image.get_width():
+                    offset_x += TILE_SIZE
+                else:
+                    y += TILE_SIZE
+                    offset_x = 0
 
             if self.dragging != -1:
                 if self.dragging == VIDE:
                     pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(pygame.mouse.get_pos(), (TILE_SIZE, TILE_SIZE)))
                 screen.blit(self.collisionList[self.dragging], pygame.mouse.get_pos())
             
-            self.initialized_rects = True
-
 
 def load_map(file_name):
     if os.path.isfile(file_name):
