@@ -20,12 +20,6 @@ NUM_LAYERS = 5
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 700
 
-FOLDER_PATH = "collisions"
-TILE_MAP_FOLDER_NAME = "tilemaps"
-TILE_MAP_FILE_NAME = "map.txt"
-TILE_MAP_RELOADABLE_FILE_NAME = "map_reload.txt"
-TILE_MAP_IMAGE_FILE_NAME = "map.png"
-
 FONT = pygame.font.Font(size=32)
 
 HELP_BACKGROUND = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -90,6 +84,7 @@ def main():
     placing_tile = False
     placing_rect = False
     placing_rect_position = pygame.Vector2(0, 0)
+    copied_rect = []
 
     show_help = True
     mode_verbose = False
@@ -141,6 +136,41 @@ def main():
                     menu.visible = not menu.visible
                     if not menu.visible:
                         menu.dragging = -1
+                elif event.key == pygame.K_c:
+                    if not type(placing_rect) is bool:
+                        copied_rect = []
+                        placing_rect.width /= zoom_factor
+                        placing_rect.height /= zoom_factor
+                        x = placing_rect.left
+                        idx_x = 0
+                        while x < placing_rect.right:
+                            y = placing_rect.top
+                            idx_y = 0
+                            copied_rect.append([])
+                            while y < placing_rect.bottom:
+                                coords = (x, y)
+                                copied_rect[idx_x].append(get_tile_from_map(layers[current_layer], coords, 1))
+                                y += TILE_SIZE
+                                idx_y += 1
+                            x += TILE_SIZE
+                            idx_x += 1
+                elif event.key == pygame.K_v:
+                    if len(copied_rect) != 0:
+                        map_sauvegarde = False
+                        changements = []
+                        for x, column in enumerate(copied_rect):
+                            for y, tile in enumerate(column):
+                                coords = (x * TILE_SIZE + global_mouse_x, y * TILE_SIZE + global_mouse_y)
+                                changement = {
+                                    "pos": (coords[0], coords[1]),
+                                    "tuile": get_tile_from_map(layers[current_layer], coords, 1),
+                                    "layer": current_layer
+                                }
+                                changements.append(changement)
+                                add_tile_to_map(layers[current_layer], tile["nom"], coords, 1, tile["special"])
+                        historique_changements.insert(0, changements)
+                        if len(historique_changements) > changements_max:
+                            historique_changements.pop()
                 elif event.key == pygame.K_UP:
                     current_layer = min(current_layer + 1, NUM_LAYERS - 1)
                 elif event.key == pygame.K_DOWN:
@@ -157,9 +187,9 @@ def main():
                             changement = historique_changements[0]
                             if type(changement) is list:
                                 for change in changement:
-                                    add_tile_to_map(layers[change["layer"]], change["tuile"]["nom"], change["pos"], zoom_factor, change["tuile"]["special"])
+                                    add_tile_to_map(layers[change["layer"]], change["tuile"]["nom"], change["pos"], 1, change["tuile"]["special"])
                             else:
-                                add_tile_to_map(layers[changement["layer"]], changement["tuile"]["nom"], changement["pos"], zoom_factor, changement["tuile"]["special"])
+                                add_tile_to_map(layers[changement["layer"]], changement["tuile"]["nom"], changement["pos"], 1, changement["tuile"]["special"])
                             historique_changements.pop(0)
                 else:
                     if event.key == pygame.K_z:
@@ -204,7 +234,7 @@ def main():
                             while y < placing_rect.bottom:
                                 coords = (x, y)
                                 changement = {
-                                    "pos": (x * zoom_factor, y * zoom_factor),
+                                    "pos": (x, y),
                                     "tuile": get_tile_from_map(layers[current_layer], coords, 1),
                                     "layer": current_layer
                                 }
@@ -269,7 +299,7 @@ def main():
                 tuile = get_tile_from_map(layers[current_layer], coords, zoom_factor)
                 if tuile["nom"] != menu.dragging:
                     changement = {
-                        "pos": coords,
+                        "pos": (coords[0] / zoom_factor, coords[1] / zoom_factor),
                         "tuile": tuile,
                         "layer": current_layer
                     }
@@ -386,7 +416,9 @@ def draw_help(screen: pygame.Surface):
         "-reset zoom: z",
         "-remplir rectangle: shift gauche + déplacer souris puis click droit",
         "-gomme: e",
-        "activer/désactiver mode verbose: espace",
+        "-activer/désactiver mode verbose: espace",
+        "-ajouter attributs spéciaux: ctrl+click gauche",
+        "-enlever tout les attributs spéciaux: ctrl+click droit",
         "-choisir tuile: click gauche sur la tuile dans la barre de gauche",
         "-déplacer: click gauche sur la map + déplacer souris",
         "-descendre/monter dans la barre de gauche: molette de la souris",
