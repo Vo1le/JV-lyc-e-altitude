@@ -34,8 +34,10 @@ class Map(py.sprite.Sprite):
         self.collisions = extendedGroup()
         for layer in self.tile_map:
             for y, row in enumerate(layer):
-                for x, tile_attributs in enumerate(row):
+                for x, tile in enumerate(row):
+                    tile_attributs = tile["attributs"]
                     if MUR in tile_attributs:
+                        if "collision" in tile["special"] and tile["special"]["collision"] == "0": continue
                         wall = Wall(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top)
                         wall.add(self.collisions)
 
