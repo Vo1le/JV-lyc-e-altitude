@@ -27,8 +27,8 @@ Cliquez sur le boutton "Code" vert, puis sur le boutton "Download ZIP".
 
 Dezipez le ZIP que vous venez d'installer dans un endroit ou vous pouvez le retrouver facilement.  
 
-Ouvrez un explorateur de fichiers et naviguez jusqu'au répertoire ou vous avez mis le code, rentrez dans le répertoire "Projet jeu vidéo" et copiez le chemin. Ouvrez un terminal (ou powershell sous Windows) et écrivez "cd chemin/que/vous/avez/copié". ex:  
-cd C:\Users\ellio\Documents\coding\Python\JV_Lycee\JV-lyc-e-altitude\Projet jeu vidéo>  
+Ouvrez un explorateur de fichiers et naviguez jusqu'au répertoire ou vous avez mis le code, rentrez dans le répertoire "JV-lyc-e-altitude-main" puis "JV-lyc-e-altitude-main" puis "Projet_jeu_vidéo" et copiez le chemin. Ouvrez un terminal (ou powershell sous Windows) et écrivez "cd chemin/que/vous/avez/copié". ex:  
+cd C:\Users\ellio\Downloads\JV-lyc-e-altitude-main\JV-lyc-e-altitude-main\Projet_jeu_vidéo
 
 Ensuite, pour rentrer et sortir du répertoire "maps" (la ou se trouve l'éditeur de niveau) utilisez la commande "cd". "cd" va vous avancer dans le répertoire que vous lui donnez. ex: "cd maps" pour rentrer dans le répertoire "maps". Vous pouvez aussi lui donnez ".." pour remonter d'un répertoire. ex: "cd .." pour sortir du répertoire "maps".  
 
