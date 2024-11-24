@@ -231,7 +231,7 @@ def main():
                             while y < placing_rect.bottom:
                                 coords = (x, y)
                                 changement = {
-                                    "pos": (x, y),
+                                    "pos": coords,
                                     "tuile": get_tile_from_map(layers[current_layer], coords, 1),
                                     "layer": current_layer
                                 }

@@ -3,6 +3,7 @@ import math
 import pickle
 import os
 from maps.attributs import *
+from Joueur import get_joueur_position_cell
 
 
 class Wall(py.sprite.Sprite):
@@ -43,18 +44,16 @@ class Map(py.sprite.Sprite):
                         wall.add(self.collisions)
     
     def draw(self, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
-        surface_blit = surface.blit
-        windowSize = (GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT)
         zoom = round(p_zoom, 2)
         spr = self.images[layer]
         topleft = self.rect.topleft
         positionJoueur = get_joueur_position_cell(positionJoueurGlobal)
         if zoom == 1:
             pos = (0, 0)
-            surface_blit(spr, pos, (positionJoueur[0], positionJoueur[1], positionJoueur[0] + GAME_SCREEN_WIDTH, positionJoueur[1] + GAME_SCREEN_HEIGHT))
+            surface.blit(spr, pos, (positionJoueur[0], positionJoueur[1], positionJoueur[0] + GAME_SCREEN_WIDTH, positionJoueur[1] + GAME_SCREEN_HEIGHT))
         else:
-            pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + windowSize[0] / 2), math.floor((topleft[1] - positionJoueur[1]) * zoom + windowSize[1] / 2))
-            surface_blit(py.transform.scale(spr, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
+            pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH - GAME_SCREEN_WIDTH / 2 - GAME_SCREEN_WIDTH / 2 * zoom), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT - GAME_SCREEN_HEIGHT / 2 - GAME_SCREEN_HEIGHT / 2 * zoom))
+            surface.blit(py.transform.scale(spr, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
 
 
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
@@ -94,7 +93,3 @@ class extendedGroup(py.sprite.Group):
         for spr in sprites:
             s += str(spr.rect.center) + "; "
         return s
-
-
-def get_joueur_position_cell(positionJoueurGlobal):
-    return (math.floor(positionJoueurGlobal[0] / GAME_SCREEN_WIDTH) * GAME_SCREEN_WIDTH, math.floor(positionJoueurGlobal[1] / GAME_SCREEN_HEIGHT) * GAME_SCREEN_HEIGHT)

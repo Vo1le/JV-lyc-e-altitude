@@ -93,16 +93,16 @@ class Joueur(py.sprite.Sprite):
             self.frameCourante = 0.0
     
     def draw(self, surface: py.Surface, p_zoom):
-        surface_blit = surface.blit
         zoom = round(p_zoom, 2)
-        positionJoueur = get_joueur_position_cell(self.rect.topleft)
+        positionJoueur = get_joueur_position_cell(self.rect.center)
+        positionJoueur = (positionJoueur[0] + GAME_SCREEN_WIDTH / 2, positionJoueur[1] + GAME_SCREEN_HEIGHT / 2)
         topleft = self.rect.topleft
         if zoom == 1:
             pos = (topleft[0] - positionJoueur[0] + GAME_SCREEN_WIDTH / 2, topleft[1] - positionJoueur[1] + GAME_SCREEN_HEIGHT / 2)
-            surface_blit(self.image, pos)
+            surface.blit(self.image, pos)
         else:
             pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH / 2), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT / 2))
-            surface_blit(py.transform.scale(self.image, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
+            surface.blit(py.transform.scale(self.image, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
             
     
 def clamp(n, p_min, p_max):
@@ -119,4 +119,4 @@ def sign(n):
     return 0
 
 def get_joueur_position_cell(positionJoueurGlobal):
-    return (math.floor(positionJoueurGlobal[0] / GAME_SCREEN_WIDTH) * GAME_SCREEN_WIDTH + GAME_SCREEN_WIDTH / 2, math.floor(positionJoueurGlobal[1] / GAME_SCREEN_HEIGHT) * GAME_SCREEN_HEIGHT + GAME_SCREEN_HEIGHT / 2)
+    return (math.floor(positionJoueurGlobal[0] / GAME_SCREEN_WIDTH) * GAME_SCREEN_WIDTH, math.floor(positionJoueurGlobal[1] / GAME_SCREEN_HEIGHT) * GAME_SCREEN_HEIGHT)
