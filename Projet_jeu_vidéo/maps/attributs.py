@@ -50,8 +50,13 @@ TILE_MAP_IMAGE_FILE_NAME = "map.png"
 # case par defaut
 VIDE = "vide.png"
 
+# nombre de couches
+NUM_LAYERS = 5
+# nombre de couches au dessus du joueur (ces couches seront a la fin des couches. ex: si il y a 5 couches et 2 couches au dessus du joueur, alors les couches 0, 1, 2 seront sous le joueur)
+NUM_LAYERS_ABOVE_PLAYER = 2
+
 # taille d'une tuile (en pixels)
-TILE_SIZE = 60
+TILE_SIZE = 64
 
 # Taille d'un écran (en tuiles)
 GAME_SCREEN_WIDTH = 25

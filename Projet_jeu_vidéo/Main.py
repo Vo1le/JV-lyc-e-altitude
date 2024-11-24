@@ -2,12 +2,13 @@
 import pygame as py
 from pygame.locals import * 
 import sys
+from maps.attributs import GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT
 
 # // les init de pygame //
 py.init()
 
 # // Set up de l'écran //
-ecran = py.display.set_mode(size=(0, 0))
+ecran = py.display.set_mode(size=(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT), flags=FULLSCREEN|SCALED)
 color = (255,255,255)
 ecran.fill(color)
 width = py.Surface.get_width(ecran)
@@ -30,15 +31,11 @@ def main():
     continuer = True
 
     # // ajout des sprites dans le jeu //
-    joueurdep = extendedGroup()
-    joueur = Joueur(0, 0)
-    joueurdep.add(joueur)
+    joueur = Joueur(25, 50)
 
-    Environments = extendedGroup()
     mapjeu = Map(0, 0)
-    Environments.add(mapjeu)
 
-    zoom = 0.7
+    zoom = 1
     
     # // la boucle pour les evenements et autres //
     while continuer: 
@@ -60,21 +57,23 @@ def main():
 
         # // mise a niveaux des objets du monde (joueur, pnj, ...)
         dt = fpsClock.get_time() / 1000
-        joueurdep.update(dt, mapjeu)
-        # camera()
+        zoom = joueur.update(dt, mapjeu, zoom)
 
         # // Affichage //
-        Affichage(joueurdep, Environments, joueur.rect.topleft, zoom)
+        Affichage(joueur, mapjeu, joueur.rect.topleft, zoom)
 
         fpsClock.tick(FPS)
 
 # // fonction diverses //
 
-def Affichage(joueurdep, Environments, positionJoueur, zoom):
+def Affichage(joueur, mapjeu, positionJoueur, zoom):
     ecran.fill(color)
-    
-    Environments.draw(ecran, positionJoueur, zoom)
-    joueurdep.draw(ecran, positionJoueur, zoom)
+
+    for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER):
+        mapjeu.draw(ecran, positionJoueur, zoom, layer)
+    joueur.draw(ecran, zoom)
+    for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER, NUM_LAYERS):
+        mapjeu.draw(ecran, positionJoueur, zoom, layer)
     py.display.update()
 
 if __name__ == "__main__":

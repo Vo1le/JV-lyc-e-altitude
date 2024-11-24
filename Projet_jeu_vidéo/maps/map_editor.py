@@ -14,9 +14,6 @@ BG_COLOR = (255, 255, 255)
 MIN_ZOOM = 0.2
 MAX_ZOOM = 5
 
-#Paramétres de la map
-NUM_LAYERS = 5
-
 SCREEN_WIDTH = 900
 SCREEN_HEIGHT = 700
 
@@ -26,11 +23,14 @@ HELP_BACKGROUND = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 HELP_BACKGROUND.fill(pygame.Color(200, 200, 100))
 HELP_BACKGROUND.set_alpha(150)
 
-if os.path.isfile(TILE_MAP_IMAGE_FILE_NAME):
-    map_surface = pygame.image.load(TILE_MAP_IMAGE_FILE_NAME)
-else:
-    map_surface = pygame.Surface((WIDTH_MAP, HEIGHT_MAP))
-    map_surface.fill((255, 255, 255))
+map_surfaces: list[pygame.Surface] = []
+for i in range(NUM_LAYERS):
+    if os.path.isfile(TILE_MAP_IMAGE_FILE_NAME + str(i)):
+        map_surfaces.append(pygame.image.load(TILE_MAP_IMAGE_FILE_NAME + str(i)))
+    else:
+        surface = pygame.Surface((WIDTH_MAP, HEIGHT_MAP), pygame.SRCALPHA)
+        surface.fill((255, 255, 255))
+        map_surfaces.append(surface)
 
 def main():
 
@@ -117,10 +117,7 @@ def main():
                     dialogue_quitter(layers, map_sauvegarde, images)
                 elif event.key == pygame.K_q:
                     map_sauvegarde = True
-                    save_map_image(layers, images)
-                    pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
-                    save_map(TILE_MAP_FILE_NAME, layers)
-                    save_map(TILE_MAP_RELOADABLE_FILE_NAME, layers, False)
+                    save_everything(layers, images)
                 elif event.key == pygame.K_RETURN:
                     if not type(editing_tile_coords) is bool:
                         map_sauvegarde = False
@@ -385,11 +382,8 @@ def draw_tile_map(screen, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=
                 screen.blit(tile_img, screen_coords)
 
 
-def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1, special: dict ={}):
-    x, y = coords
-    scaled_tile = int(TILE_SIZE * zoom_factor)
-    cell_x = int(x // scaled_tile)
-    cell_y = int(y // scaled_tile)
+def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1, special: dict = {}):
+    cell_x, cell_y = get_tile_coords(coords, zoom_factor)
     if 0 <= cell_x < WIDTH_MAP / TILE_SIZE and 0 <= cell_y < HEIGHT_MAP / TILE_SIZE:
         TILE_MAP[cell_y][cell_x] = {"nom": key, "special": special.copy()}
 
@@ -493,6 +487,13 @@ def load_map(file_name):
         TILE_MAP = [[[{"nom": VIDE, "special": {}} for _ in range(WIDTH_MAP // TILE_SIZE)] for _ in range(HEIGHT_MAP // TILE_SIZE)] for _ in range(NUM_LAYERS)]
     return TILE_MAP
 
+def save_everything(TILE_MAP, images):
+    save_map_image(TILE_MAP, images)
+    for i, map_surface in enumerate(map_surfaces):
+        pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME[:TILE_MAP_IMAGE_FILE_NAME.find(".")] + str(i) + TILE_MAP_IMAGE_FILE_NAME[TILE_MAP_IMAGE_FILE_NAME.find("."):])
+    save_map(TILE_MAP_FILE_NAME, TILE_MAP)
+    save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
+
 def save_map(file_name, TILE_MAP, gamemap=True):
     tile_map = TILE_MAP
     if gamemap:
@@ -523,9 +524,9 @@ def appliquer_attributs(tile: str):
 
 
 def save_map_image(TILE_MAP, images):
-    map_surface.fill((255, 255, 255))
-    for layer in TILE_MAP:
-        for y, row in enumerate(layer):
+    for i, map_surface in enumerate(map_surfaces):
+        map_surface.fill((255, 255, 255, 0))
+        for y, row in enumerate(TILE_MAP[i]):
             for x, tile in enumerate(row):
                 map_surface.blit(images[tile["nom"]], (x * TILE_SIZE, y * TILE_SIZE))
 
@@ -537,10 +538,7 @@ def dialogue_quitter(TILE_MAP, map_sauvegarde, images):
         for i in range(5):
             s = input("Vous avez quitté l'éditeur de niveau sans sauvegarder, voulez vous le faire maintenant? (oui/non) ").lower()
             if s == "oui":
-                save_map_image(TILE_MAP, images)
-                pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME)
-                save_map(TILE_MAP_FILE_NAME, TILE_MAP)
-                save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
+                save_everything(TILE_MAP, images)
                 break
             print()
             if s == "non":

@@ -1,6 +1,7 @@
 import pygame as py
 from inputs import verifierInput
 import math
+from maps.attributs import GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT
 
 RACINEDE2 = math.sqrt(2)
 
@@ -24,11 +25,11 @@ class Joueur(py.sprite.Sprite):
         self.animation = "idle"
         self.frameCourante = 0.0
 
-    def update(self, dt, mapjeu):
+    def update(self, dt, mapjeu, zoom: float):
         touchesAppuyes = py.key.get_pressed()
         input = py.math.Vector2(verifierInput(touchesAppuyes, "droite") - verifierInput(touchesAppuyes, "gauche"), verifierInput(touchesAppuyes, "bas") - verifierInput(touchesAppuyes, "haut"))
         if input.y:
-            if self.vitesse.y != 0 and sign(self.vitesse.y) != input.y:
+            if self.vitesse.y != 0.0 and sign(self.vitesse.y) != input.y:
                 self.vitesse.y = clamp(self.vitesse.y + self.friction * dt * input.y, 0, self.vitesse.y)
             else:
                 self.vitesse.y = py.math.clamp(self.vitesse.y + self.acceleration * dt * input.y, -self.vitesseMax, self.vitesseMax)
@@ -36,20 +37,24 @@ class Joueur(py.sprite.Sprite):
             self.vitesse.move_towards_ip(py.math.Vector2(self.vitesse.x, 0), self.friction * dt)
         
         if input.x:
-            if self.vitesse.x != 0 and sign(self.vitesse.x) != input.x:
+            if self.vitesse.x != 0.0 and sign(self.vitesse.x) != input.x:
                 self.vitesse.x = clamp(self.vitesse.x + self.friction * dt * input.x, 0, self.vitesse.x)
             else:
                 self.vitesse.x = py.math.clamp(self.vitesse.x + self.acceleration * dt * input.x, -self.vitesseMax, self.vitesseMax)
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
         
-        if input.x != 0 and input.y != 0:
+        if input.x != 0.0 and input.y != 0.0:
             self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / RACINEDE2)
-            
+        
         
         self.avance(dt, mapjeu)
 
         self.updateAnimations(dt, input)
+
+        if not input:
+            return zoom
+        return 1.0
 
     def movejoueur(self, x, y):
         self.rect.x = x
@@ -86,6 +91,18 @@ class Joueur(py.sprite.Sprite):
         if anim != self.animation:
             self.animation = anim
             self.frameCourante = 0.0
+    
+    def draw(self, surface: py.Surface, p_zoom):
+        surface_blit = surface.blit
+        zoom = round(p_zoom, 2)
+        positionJoueur = get_joueur_position_cell(self.rect.topleft)
+        topleft = self.rect.topleft
+        if zoom == 1:
+            pos = (topleft[0] - positionJoueur[0] + GAME_SCREEN_WIDTH / 2, topleft[1] - positionJoueur[1] + GAME_SCREEN_HEIGHT / 2)
+            surface_blit(self.image, pos)
+        else:
+            pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH / 2), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT / 2))
+            surface_blit(py.transform.scale(self.image, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
             
     
 def clamp(n, p_min, p_max):
@@ -100,3 +117,6 @@ def sign(n):
     elif n > 0.0:
         return 1
     return 0
+
+def get_joueur_position_cell(positionJoueurGlobal):
+    return (math.floor(positionJoueurGlobal[0] / GAME_SCREEN_WIDTH) * GAME_SCREEN_WIDTH + GAME_SCREEN_WIDTH / 2, math.floor(positionJoueurGlobal[1] / GAME_SCREEN_HEIGHT) * GAME_SCREEN_HEIGHT + GAME_SCREEN_HEIGHT / 2)

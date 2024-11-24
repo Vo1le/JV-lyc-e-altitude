@@ -16,10 +16,11 @@ class Wall(py.sprite.Sprite):
 class Map(py.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = py.image.load("maps/map.png")
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
-        self.tile_map = self.load_map("maps/map.txt")
+        self.images = []
+        for i in range(NUM_LAYERS):
+            self.images.append(py.image.load("maps/" + TILE_MAP_IMAGE_FILE_NAME[:TILE_MAP_IMAGE_FILE_NAME.find(".")] + str(i) + TILE_MAP_IMAGE_FILE_NAME[TILE_MAP_IMAGE_FILE_NAME.find("."):]).convert_alpha())
+        self.rect = py.Rect(x, y, WIDTH_MAP, HEIGHT_MAP)
+        self.tile_map = self.load_map("maps/" + TILE_MAP_FILE_NAME)
         self.apply_attributs()
     
     def load_map(self, file_name):
@@ -40,21 +41,36 @@ class Map(py.sprite.Sprite):
                         if "collision" in tile["special"] and tile["special"]["collision"] == "0": continue
                         wall = Wall(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top)
                         wall.add(self.collisions)
+    
+    def draw(self, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
+        surface_blit = surface.blit
+        windowSize = (GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT)
+        zoom = round(p_zoom, 2)
+        spr = self.images[layer]
+        topleft = self.rect.topleft
+        positionJoueur = get_joueur_position_cell(positionJoueurGlobal)
+        if zoom == 1:
+            pos = (0, 0)
+            surface_blit(spr, pos, (positionJoueur[0], positionJoueur[1], positionJoueur[0] + GAME_SCREEN_WIDTH, positionJoueur[1] + GAME_SCREEN_HEIGHT))
+        else:
+            pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + windowSize[0] / 2), math.floor((topleft[1] - positionJoueur[1]) * zoom + windowSize[1] / 2))
+            surface_blit(py.transform.scale(spr, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
 
 
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
 class extendedGroup(py.sprite.Group):
     # draw est une méthode de py.sprite.Group que je remplace par la mienne
     # elle prend comme argument self, la surface sur laquelle afficher, la position du joueur pour pouvoir décaler les sprites et le zoom a appliquer aux sprites
-    def draw(self, surface: py.Surface, positionJoueur, p_zoom):
+    def draw(self, surface: py.Surface, positionJoueurGlobal, p_zoom):
         # self.sprites est la liste qui contient tout les sprites de ce groupe
         sprites = self.sprites()
         # surface_blit est une réference a la fonction d'affichage, ce qui veut dire que surface_blit() est l'équivalent de surface.blit()
         surface_blit = surface.blit
-        windowSize = py.display.get_window_size()
+        windowSize = (GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT)
         # je round le zoom pour éviter les erreurs de précision
         zoom = round(p_zoom, 2)
         # je fait ce teste pour ne pas devoir scaler si il n'y en a pas besoin
+        positionJoueur = get_joueur_position_cell(positionJoueurGlobal)
         if zoom == 1:
             for spr in sprites:
                 # spr est une instance d'une classe qui hérite de py.sprite.Sprite qui appartient a ce groupe
@@ -78,3 +94,7 @@ class extendedGroup(py.sprite.Group):
         for spr in sprites:
             s += str(spr.rect.center) + "; "
         return s
+
+
+def get_joueur_position_cell(positionJoueurGlobal):
+    return (math.floor(positionJoueurGlobal[0] / GAME_SCREEN_WIDTH) * GAME_SCREEN_WIDTH, math.floor(positionJoueurGlobal[1] / GAME_SCREEN_HEIGHT) * GAME_SCREEN_HEIGHT)
