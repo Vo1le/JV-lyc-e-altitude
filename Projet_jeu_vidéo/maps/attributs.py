@@ -50,7 +50,7 @@ TILE_MAP_IMAGE_FILE_NAME = "map.png"
 # case par defaut
 VIDE = "vide.png"
 
-# taille d'une tuile
+# taille d'une tuile (en pixels)
 TILE_SIZE = 60
 
 # Taille d'un écran (en tuiles)
