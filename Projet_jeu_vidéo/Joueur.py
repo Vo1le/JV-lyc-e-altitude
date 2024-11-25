@@ -92,9 +92,11 @@ class Joueur(py.sprite.Sprite):
             self.animation = anim
             self.frameCourante = 0.0
     
-    def draw(self, surface: py.Surface, p_zoom):
+    def draw(self, surface: py.Surface, p_zoom, positionOverride=-1):
+        if positionOverride == -1:
+            positionOverride = self.rect.center
         zoom = round(p_zoom, 2)
-        positionJoueur = get_joueur_position_cell(self.rect.center)
+        positionJoueur = get_joueur_position_cell(positionOverride)
         positionJoueur = (positionJoueur[0] + GAME_SCREEN_WIDTH / 2, positionJoueur[1] + GAME_SCREEN_HEIGHT / 2)
         topleft = self.rect.topleft
         if zoom == 1:

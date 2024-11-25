@@ -34,7 +34,7 @@ def main():
 
     mapjeu = Map(0, 0)
 
-    transitionEcran = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT)
+    transitionEcran = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.3, transitionType="circle", playType="ping-pong")
     dernierePositionJoueur = joueur.rect.topleft
 
     zoom = 1
@@ -64,7 +64,7 @@ def main():
             positionJoueurStart = joueur.rect.center
             zoom = joueur.update(dt, mapjeu, zoom)
             if joueurCellStart != get_joueur_position_cell(joueur.rect.center):
-                transitionEcran.play(end=0.3, playType="ping-pong")
+                transitionEcran.play()
                 dernierePositionJoueur = positionJoueurStart
         transitionEcran.update(dt)
         joueurCenter = joueur.rect.center
@@ -75,7 +75,7 @@ def main():
 
         for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER):
             mapjeu.draw(ecran, joueurCenter, zoom, layer)
-        joueur.draw(ecran, zoom)
+        joueur.draw(ecran, zoom, joueurCenter)
         for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER, NUM_LAYERS):
             mapjeu.draw(ecran, joueurCenter, zoom, layer)
 

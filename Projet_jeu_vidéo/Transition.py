@@ -1,14 +1,30 @@
 import pygame
+from typing import Literal
 
 class Transition:
-    def __init__(self, GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.5):
+    def __init__(self, GAME_SCREEN_WIDTH: int, GAME_SCREEN_HEIGHT: int, end=0.5, transitionType:Literal["fade", "circle"]="fade", playType:Literal["forward", "reverse", "ping-pong"]="forward"):
+        """Crée un objet transition
+
+        Args:
+            GAME_SCREEN_WIDTH (int): largeur de l'écran
+            GAME_SCREEN_HEIGHT (int): hauteur de l'écran
+            end (float, optional): durée de la transition. par défaut: 0.5.
+            transitionType (str, optional): le type de la transition. par défaut: "fade".
+            playType (str, optional): la direction dans laquelle doit jouer l'animation. par défaut: "forward".
+        
+        Returns:
+            Transition: l'objet transition crée
+        """
         self.time = 0.0
-        self.end = 0.5
-        self.surface = pygame.Surface((GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT))
-        self.surface.fill((0, 0, 0))
+        self.end = end
         self.playing = False
-        self.playType = "forward"
+        self.playType = playType
+        self.transitionType = transitionType
         self.reverse = False
+        self.gameScreenSize = (GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT)
+        self.gameScreenDiag = pygame.Vector2(GAME_SCREEN_WIDTH / 2, GAME_SCREEN_HEIGHT / 2).length()
+        self.surface = pygame.Surface(self.gameScreenSize)
+        self.surface.fill((0, 0, 0))
     
     def update(self, dt):
         if not self.playing: return
@@ -27,12 +43,22 @@ class Transition:
     
     def draw(self, screen: pygame.Surface):
         if not self.playing: return
-        self.surface.set_alpha(pygame.math.lerp(0, 255, self.time / self.end))
-        screen.blit(self.surface, (0, 0))
+        if self.transitionType == "fade":
+            self.surface.set_alpha(pygame.math.lerp(0, 255, self.time / self.end))
+            screen.blit(self.surface, (0, 0))
+        elif self.transitionType == "circle":
+            if not self.reverse:
+                radius = pygame.math.lerp(0, self.gameScreenDiag, self.time / self.end)
+                pygame.draw.circle(screen, (0, 0, 0), (self.gameScreenSize[0] / 2, self.gameScreenSize[1] / 2), radius)
+            else:
+                radius = self.gameScreenDiag
+                width = int(pygame.math.lerp(0, self.gameScreenSize[0] * 1.5, self.time / self.end))
+                pygame.draw.circle(screen, (0, 0, 0), (self.gameScreenSize[0] / 2, self.gameScreenSize[1] / 2), radius, width)
     
-    def play(self, end=-1, playType="forward"):
+    def play(self, end=-1, playType=-1):
         self.playing = True
-        self.playType = playType
+        if playType != -1:
+            self.playType = playType
         if end != -1:
             self.end = end
         if self.playType == "reverse":
