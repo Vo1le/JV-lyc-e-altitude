@@ -24,9 +24,11 @@ HELP_BACKGROUND.fill(pygame.Color(200, 200, 100))
 HELP_BACKGROUND.set_alpha(150)
 
 map_surfaces: list[pygame.Surface] = []
+path = TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_IMAGE_FILE_NAME
 for i in range(NUM_LAYERS):
-    if os.path.isfile(TILE_MAP_IMAGE_FILE_NAME + str(i)):
-        map_surfaces.append(pygame.image.load(TILE_MAP_IMAGE_FILE_NAME + str(i)))
+    sep = path.find(".")
+    if os.path.isfile(path[:i] + str(i) + path[i + 1:]):
+        map_surfaces.append(pygame.image.load(path + str(i)))
     else:
         surface = pygame.Surface((WIDTH_MAP, HEIGHT_MAP), pygame.SRCALPHA)
         surface.fill((255, 255, 255))
@@ -65,7 +67,7 @@ def main():
         img.set_alpha(100.0)
         images_faded[image_name] = img
     
-    layers = load_map(TILE_MAP_RELOADABLE_FILE_NAME)
+    layers = load_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_RELOADABLE_FILE_NAME)
     current_layer = 0
 
     # variables pour le zoom
@@ -490,9 +492,10 @@ def load_map(file_name):
 def save_everything(TILE_MAP, images):
     save_map_image(TILE_MAP, images)
     for i, map_surface in enumerate(map_surfaces):
-        pygame.image.save(map_surface, TILE_MAP_IMAGE_FILE_NAME[:TILE_MAP_IMAGE_FILE_NAME.find(".")] + str(i) + TILE_MAP_IMAGE_FILE_NAME[TILE_MAP_IMAGE_FILE_NAME.find("."):])
-    save_map(TILE_MAP_FILE_NAME, TILE_MAP)
-    save_map(TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
+        path = TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_IMAGE_FILE_NAME
+        pygame.image.save(map_surface, path[:path.find(".")] + str(i) + path[path.find("."):])
+    save_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_FILE_NAME, TILE_MAP)
+    save_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
 
 def save_map(file_name, TILE_MAP, gamemap=True):
     tile_map = TILE_MAP

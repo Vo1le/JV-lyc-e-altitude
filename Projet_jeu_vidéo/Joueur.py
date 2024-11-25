@@ -44,17 +44,17 @@ class Joueur(py.sprite.Sprite):
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
         
-        if input.x != 0.0 and input.y != 0.0:
+        if input.x != 0.0 and input.y != 0.0 and self.vitesse.length != 0.0:
             self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / RACINEDE2)
         
         
-        self.avance(dt, mapjeu)
+        location = self.avance(dt, mapjeu)
 
         self.updateAnimations(dt, input)
 
         if not input:
-            return zoom
-        return 1.0
+            return zoom, location
+        return 1.0, location
 
     def movejoueur(self, x, y):
         self.rect.x = x
@@ -65,6 +65,10 @@ class Joueur(py.sprite.Sprite):
             dir = self.vitesse.normalize()
             self.avance_une_direction(dt, mapjeu, py.Vector2(dir.x, 0))
             self.avance_une_direction(dt, mapjeu, py.Vector2(0, dir.y))
+            porte = py.sprite.spritecollideany(self, mapjeu.portes)
+            if porte:
+                return {"destination": porte.destination, "position": porte.position}
+        return -1
             
     def avance_une_direction(self, dt, mapjeu, dir):
         rect_avant = self.rect.copy()

@@ -29,12 +29,14 @@ def main():
     # // Espace dédié au diverses variables liée au fonctionnement du code //
     continuer = True
 
+    location = {"destination": "monde", "position": (25, 50)}
+    mapjeu = Map(0, 0, location["destination"])
+
     # // ajout des sprites dans le jeu //
-    joueur = Joueur(25, 50)
+    joueur = Joueur(location["position"][0], location["position"][1])
 
-    mapjeu = Map(0, 0)
-
-    transitionEcran = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.3, transitionType="circle", playType="ping-pong")
+    transitionEcran = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.3, transitionType="fade", playType="ping-pong")
+    transitionZone = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.5, transitionType="fade", playType="ping-pong")
     dernierePositionJoueur = joueur.rect.topleft
 
     zoom = 1
@@ -59,16 +61,24 @@ def main():
 
         # // mise a niveaux des objets du monde (joueur, pnj, ...)
         dt = fpsClock.get_time() / 1000
-        if not transitionEcran.playing:
+        if not transitionEcran.playing and not transitionZone.playing:
             joueurCellStart = get_joueur_position_cell(joueur.rect.center)
             positionJoueurStart = joueur.rect.center
-            zoom = joueur.update(dt, mapjeu, zoom)
+            zoom, new_location = joueur.update(dt, mapjeu, zoom)
+            if new_location != -1:
+                location = new_location
+                transitionZone.play()
+                dernierePositionJoueur = positionJoueurStart
             if joueurCellStart != get_joueur_position_cell(joueur.rect.center):
                 transitionEcran.play()
                 dernierePositionJoueur = positionJoueurStart
         transitionEcran.update(dt)
+        fini = transitionZone.update(dt)
+        if fini:
+            mapjeu = Map(0, 0, location["destination"])
+            joueur.rect.center = location["position"]
         joueurCenter = joueur.rect.center
-        if transitionEcran.playing and not transitionEcran.reverse:
+        if (transitionEcran.playing and not transitionEcran.reverse) or (transitionZone.playing and not transitionZone.reverse):
             joueurCenter = dernierePositionJoueur
         # // Affichage //
         ecran.fill(color)
@@ -80,6 +90,7 @@ def main():
             mapjeu.draw(ecran, joueurCenter, zoom, layer)
 
         transitionEcran.draw(ecran)
+        transitionZone.draw(ecran)
 
         py.display.update()
 

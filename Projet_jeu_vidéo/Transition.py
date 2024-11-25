@@ -26,8 +26,9 @@ class Transition:
         self.surface = pygame.Surface(self.gameScreenSize)
         self.surface.fill((0, 0, 0))
     
-    def update(self, dt):
-        if not self.playing: return
+    def update(self, p_dt):
+        if not self.playing: return False
+        dt = p_dt if p_dt < 0.2 else 0.2
         if self.reverse:
             self.time -= dt
             if self.time <= 0.0:
@@ -40,6 +41,8 @@ class Transition:
                     self.time = self.end
                 else:
                     self.stop()
+                return True
+        return False
     
     def draw(self, screen: pygame.Surface):
         if not self.playing: return

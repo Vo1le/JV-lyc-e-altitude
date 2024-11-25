@@ -40,6 +40,8 @@ def main():
 FOLDER_PATH = "collisions"
 # nom du répertoire dans lequel se trouve les tilemaps
 TILE_MAP_FOLDER_NAME = "tilemaps"
+# nom du répertoire dans lequel sauver la map
+TILE_MAP_SAVE_FOLDER_NAME = "maison1"
 # nom du fichier dans lequel sauver la map qui sera utilisée par le jeu
 TILE_MAP_FILE_NAME = "map.txt"
 # nom du fichier dans lequel sauver la map qui sera utilisée par l'editeur de niveau

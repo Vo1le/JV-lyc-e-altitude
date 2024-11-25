@@ -13,15 +13,25 @@ class Wall(py.sprite.Sprite):
         self.image.fill((0, 0, 0, 0)) """
         self.rect = py.Rect(0, 0, TILE_SIZE, TILE_SIZE)
         self.rect.topleft = (x, y)
+    
+class Porte(py.sprite.Sprite):
+    def __init__(self, x, y, destination, position):
+        super().__init__()
+        """ self.image = py.Surface((TILE_SIZE, TILE_SIZE))
+        self.image.fill((0, 0, 0, 0)) """
+        self.rect = py.Rect(0, 0, TILE_SIZE, TILE_SIZE)
+        self.rect.topleft = (x, y)
+        self.destination = destination
+        self.position = position
 
 class Map(py.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x: int, y: int, path: str):
         super().__init__()
         self.images = []
         for i in range(NUM_LAYERS):
-            self.images.append(py.image.load("maps/" + TILE_MAP_IMAGE_FILE_NAME[:TILE_MAP_IMAGE_FILE_NAME.find(".")] + str(i) + TILE_MAP_IMAGE_FILE_NAME[TILE_MAP_IMAGE_FILE_NAME.find("."):]).convert_alpha())
+            self.images.append(py.image.load("maps/" + path + "/" + TILE_MAP_IMAGE_FILE_NAME[:TILE_MAP_IMAGE_FILE_NAME.find(".")] + str(i) + TILE_MAP_IMAGE_FILE_NAME[TILE_MAP_IMAGE_FILE_NAME.find("."):]).convert_alpha())
         self.rect = py.Rect(x, y, WIDTH_MAP, HEIGHT_MAP)
-        self.tile_map = self.load_map("maps/" + TILE_MAP_FILE_NAME)
+        self.tile_map = self.load_map("maps/" + path + "/" + TILE_MAP_FILE_NAME)
         self.apply_attributs()
     
     def load_map(self, file_name):
@@ -34,14 +44,23 @@ class Map(py.sprite.Sprite):
     
     def apply_attributs(self):
         self.collisions = extendedGroup()
+        self.portes = extendedGroup()
         for layer in self.tile_map:
             for y, row in enumerate(layer):
                 for x, tile in enumerate(row):
                     tile_attributs = tile["attributs"]
+                    tile_special = tile["special"]
                     if MUR in tile_attributs:
-                        if "collision" in tile["special"] and tile["special"]["collision"] == "0": continue
+                        if "collision" in tile_special and tile_special["collision"] == "0": continue
                         wall = Wall(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top)
                         wall.add(self.collisions)
+                    if "destination" in tile_special:
+                        pos = (25, 50)
+                        if "position" in tile_special:
+                            sep = tile_special["position"].find(";")
+                            pos = (int(tile_special["position"][:sep]), int(tile_special["position"][sep + 1:]))
+                        porte = Porte(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["destination"], pos)
+                        porte.add(self.portes)
     
     def draw(self, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
         zoom = round(p_zoom, 2)
