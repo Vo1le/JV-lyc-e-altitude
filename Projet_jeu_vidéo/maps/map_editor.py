@@ -21,18 +21,9 @@ FONT = pygame.font.Font(size=32)
 
 HELP_BACKGROUND = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 HELP_BACKGROUND.fill(pygame.Color(200, 200, 100))
-HELP_BACKGROUND.set_alpha(150)
+HELP_BACKGROUND.set_alpha(150)    
 
 map_surfaces: list[pygame.Surface] = []
-path = TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_IMAGE_FILE_NAME
-for i in range(NUM_LAYERS):
-    sep = path.find(".")
-    if os.path.isfile(path[:i] + str(i) + path[i + 1:]):
-        map_surfaces.append(pygame.image.load(path + str(i)))
-    else:
-        surface = pygame.Surface((WIDTH_MAP, HEIGHT_MAP), pygame.SRCALPHA)
-        surface.fill((255, 255, 255))
-        map_surfaces.append(surface)
 
 def main():
 
@@ -40,6 +31,121 @@ def main():
     pygame.display.set_caption(TITLE)
     FPS = 30
     fpsClock = pygame.time.Clock()
+
+    folders = []
+    x = 10.0
+    y = 10.0
+    for root, dirs, files in os.walk("."):
+        for name in dirs:
+            if not name in [FOLDER_PATH, TILE_MAP_FOLDER_NAME, "__pycache__"]:
+                folders.append({
+                    "path": os.path.join(root, name),
+                    "rect": pygame.Rect((x, y), (200.0, 100.0))
+                })
+                y += 120.0
+                if y > SCREEN_WIDTH:
+                    y = 10.0
+                    x += 250.0
+    
+    buttonsVars = [
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 100.0, 300, 100), "name": "hauteur de la map", "var": MapSize.setHeight, "val": MapSize.getHeight},
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 200.0, 300, 100), "name": "largeur de la map", "var": MapSize.setWidth, "val": MapSize.getWidth},
+        {"rect": pygame.Rect(300, 100.0, 300, 100), "name": "commencer"},
+    ]
+
+    running = True
+    editing = False
+    editingText = ""
+    choseFile = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
+                elif event.key != pygame.K_RETURN and not type(editing) is bool:
+                    if event.key == pygame.K_BACKSPACE:
+                        editingText = editingText[:-1]
+                    else:
+                        editingText += event.unicode
+                elif event.key == pygame.K_RETURN:
+                    if not type(editing) is bool:
+                        try:
+                            if editingText:
+                                editing(int(editingText))
+                        except:
+                            print("Valeur doit etre un nombre!")
+                        editingText = ""
+                        editing = False
+                    elif choseFile:
+                        running = False
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    if not choseFile:
+                        for folder in folders:
+                            if folder["rect"].collidepoint((mouse_x, mouse_y)):
+                                TILE_MAP_SAVE_FOLDER_NAME = folder["path"]
+                                if os.path.isfile(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt"):
+                                    with open(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt", "r") as f:
+                                        text = f.read()
+                                        sep = text.find(";")
+                                        MapSize.setWidth(int(text[:sep]))
+                                        MapSize.setHeight(int(text[sep + 1:]))
+                                choseFile = True
+                    else:
+                        for button in buttonsVars:
+                            if button["rect"].collidepoint((mouse_x, mouse_y)):
+                                if button["name"] == "commencer":
+                                    running = False
+                                else:
+                                    editing = button["var"]
+
+        screen.fill(BG_COLOR)
+
+        if not choseFile:
+            for folder in folders:
+                pygame.draw.rect(screen, (0, 0, 0), folder["rect"], 10)
+                path_img = FONT.render(folder["path"], True, (0, 100, 100))
+                screen.blit(path_img, (folder["rect"].topleft[0] + 10, folder["rect"].topleft[1] + 28))
+        else:
+            for button in buttonsVars:
+                pygame.draw.rect(screen, (100, 200, 0), button["rect"], 10)
+                if button["name"] == "commencer":
+                    text_img = FONT.render(button["name"], True, (0, 100, 100))
+                else:
+                    text_img = FONT.render(button["name"] + ": " + str(button["val"]()), True, (0, 100, 100))
+                screen.blit(text_img, (button["rect"].topleft[0] + 10, button["rect"].topleft[1] + 28))
+
+            if not type(editing) is bool:
+                pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8, SCREEN_WIDTH * 6 / 8, SCREEN_HEIGHT * 6 / 8))
+                text_img = FONT.render("Rentrez une valeur pour: " + button["name"], True, (0, 200, 200))
+                screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8))
+                text_img = FONT.render(editingText, True, (0, 255, 255))
+                screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8 + 64))
+
+        pygame.display.update()
+
+        fpsClock.tick(FPS)
+    
+    with open(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt", "w") as f:
+        f.write(str(MapSize.getWidth()) + ";" + str(MapSize.getHeight()))
+            
+    path = TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_IMAGE_FILE_NAME
+    for i in range(NUM_LAYERS):
+        sep = path.find(".")
+        if os.path.isfile(path[:i] + str(i) + path[i + 1:]):
+            surface = pygame.Surface((MapSize.width, MapSize.height), pygame.SRCALPHA)
+            surface.blit(pygame.image.load(path + str(i)), (0, 0), (0, 0, MapSize.width, MapSize.height))
+            map_surfaces.append(surface)
+        else:
+            surface = pygame.Surface((MapSize.width, MapSize.height), pygame.SRCALPHA)
+            surface.fill((255, 255, 255))
+            map_surfaces.append(surface)
 
     # Set up des images
     images = {}
@@ -315,17 +421,17 @@ def main():
                 using_images = images_faded
             draw_tile_map(screen, layer, using_images, zoom_factor, offset_x, offset_y)
 
-        for x in range(0, WIDTH_MAP, GAME_SCREEN_WIDTH):
+        for x in range(0, MapSize.width, GAME_SCREEN_WIDTH):
             screen_coords = (x * zoom_factor + offset_x, offset_y)
-            screen_coords_end = (x * zoom_factor + offset_x, HEIGHT_MAP * zoom_factor + offset_y)
+            screen_coords_end = (x * zoom_factor + offset_x, MapSize.height * zoom_factor + offset_y)
             pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
 
-        for y in range(0, HEIGHT_MAP, GAME_SCREEN_HEIGHT):
+        for y in range(0, MapSize.height, GAME_SCREEN_HEIGHT):
             screen_coords = (offset_x, y * zoom_factor + offset_y)
-            screen_coords_end = (WIDTH_MAP * zoom_factor + offset_x, y * zoom_factor + offset_y)
+            screen_coords_end = (MapSize.width * zoom_factor + offset_x, y * zoom_factor + offset_y)
             pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
 
-        pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, WIDTH_MAP * zoom_factor, HEIGHT_MAP * zoom_factor), 10)
+        pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, MapSize.width * zoom_factor, MapSize.height * zoom_factor), 10)
 
         if not type(placing_rect) is bool:
             s = pygame.Surface((placing_rect.size[0], placing_rect.size[1]))
@@ -349,9 +455,11 @@ def main():
             tile = get_tile_from_map(layers[current_layer], (mouse_x - offset_x, mouse_y - offset_y), zoom_factor)
             verbose_img = FONT.render(tile["nom"], True, (0, 100, 100))
             screen.blit(verbose_img, (mouse_x, mouse_y))
+            verbose_pos_img = FONT.render(str((round(global_mouse_x, 1), round(global_mouse_y, 1))), True, (0, 100, 100))
+            screen.blit(verbose_pos_img, (mouse_x, mouse_y + 32))
             for i, key in enumerate(tile["special"].keys()):
                 verbose_img = FONT.render(key + ": " + str(tile["special"][key]), True, (0, 100, 100))
-                screen.blit(verbose_img, (mouse_x, mouse_y + (i + 1) * 32))
+                screen.blit(verbose_img, (mouse_x, mouse_y + (i + 2) * 32))
         if show_help:
             draw_help(screen)
 
@@ -386,19 +494,21 @@ def draw_tile_map(screen, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=
 
 def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1, special: dict = {}):
     cell_x, cell_y = get_tile_coords(coords, zoom_factor)
-    if 0 <= cell_x < WIDTH_MAP / TILE_SIZE and 0 <= cell_y < HEIGHT_MAP / TILE_SIZE:
+    if 0 <= cell_x < MapSize.width / TILE_SIZE and 0 <= cell_y < MapSize.height / TILE_SIZE:
         TILE_MAP[cell_y][cell_x] = {"nom": key, "special": special.copy()}
 
 def get_tile_from_map(TILE_MAP, coords, zoom_factor=1):
     cell_x, cell_y = get_tile_coords(coords, zoom_factor)
-    if 0 < cell_x < WIDTH_MAP / TILE_SIZE - 1 and 0 < cell_y < HEIGHT_MAP / TILE_SIZE - 1:
+    if 0 < cell_x < MapSize.width / TILE_SIZE - 1 and 0 < cell_y < MapSize.height / TILE_SIZE - 1:
         return TILE_MAP[cell_y][cell_x]
     else:
         return {"nom": VIDE, "special": {}}
 
 def get_tile_coords(coords, zoom_factor):
     x, y = coords
-    scaled_tile = int(TILE_SIZE * zoom_factor)
+    x /= zoom_factor
+    y /= zoom_factor
+    scaled_tile = int(TILE_SIZE)
     return (int(x // scaled_tile), int(y // scaled_tile))
 
 def draw_help(screen: pygame.Surface):
@@ -484,9 +594,19 @@ class Menu:
 def load_map(file_name):
     if os.path.isfile(file_name):
         with open(file_name, "rb") as f:
-            TILE_MAP = pickle.load(f)
+            TILE_MAP: list[list[list]] = pickle.load(f)
+        for layer in TILE_MAP:
+            if len(layer) < MapSize.height // TILE_SIZE:
+                layer.extend([[{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)] for _ in range(MapSize.height // TILE_SIZE)])
+            elif len(layer) > MapSize.height // TILE_SIZE:
+                layer[:] = layer[:MapSize.height // TILE_SIZE]
+            for row in layer:
+                if len(row) < MapSize.width // TILE_SIZE:
+                    row.extend([{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)])
+                elif len(row) > MapSize.width // TILE_SIZE:
+                    row[:] = row[:MapSize.width // TILE_SIZE]
     else:
-        TILE_MAP = [[[{"nom": VIDE, "special": {}} for _ in range(WIDTH_MAP // TILE_SIZE)] for _ in range(HEIGHT_MAP // TILE_SIZE)] for _ in range(NUM_LAYERS)]
+        TILE_MAP = [[[{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)] for _ in range(MapSize.height // TILE_SIZE)] for _ in range(NUM_LAYERS)]
     return TILE_MAP
 
 def save_everything(TILE_MAP, images):

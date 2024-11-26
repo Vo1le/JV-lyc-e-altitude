@@ -36,7 +36,7 @@ def main():
     joueur = Joueur(location["position"][0], location["position"][1])
 
     transitionEcran = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.3, transitionType="fade", playType="ping-pong")
-    transitionZone = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.5, transitionType="fade", playType="ping-pong")
+    transitionZone = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.5, transitionType="circle", playType="ping-pong")
     dernierePositionJoueur = joueur.rect.topleft
 
     zoom = 1
@@ -74,7 +74,7 @@ def main():
                 dernierePositionJoueur = positionJoueurStart
         transitionEcran.update(dt)
         fini = transitionZone.update(dt)
-        if fini:
+        if fini and transitionZone.playing:
             mapjeu = Map(0, 0, location["destination"])
             joueur.rect.center = location["position"]
         joueurCenter = joueur.rect.center

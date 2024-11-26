@@ -30,7 +30,7 @@ class Map(py.sprite.Sprite):
         self.images = []
         for i in range(NUM_LAYERS):
             self.images.append(py.image.load("maps/" + path + "/" + TILE_MAP_IMAGE_FILE_NAME[:TILE_MAP_IMAGE_FILE_NAME.find(".")] + str(i) + TILE_MAP_IMAGE_FILE_NAME[TILE_MAP_IMAGE_FILE_NAME.find("."):]).convert_alpha())
-        self.rect = py.Rect(x, y, WIDTH_MAP, HEIGHT_MAP)
+        self.rect = py.Rect(x, y, MapSize.width, MapSize.height)
         self.tile_map = self.load_map("maps/" + path + "/" + TILE_MAP_FILE_NAME)
         self.apply_attributs()
     
@@ -51,9 +51,9 @@ class Map(py.sprite.Sprite):
                     tile_attributs = tile["attributs"]
                     tile_special = tile["special"]
                     if MUR in tile_attributs:
-                        if "collision" in tile_special and tile_special["collision"] == "0": continue
-                        wall = Wall(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top)
-                        wall.add(self.collisions)
+                        if not ("collision" in tile_special and tile_special["collision"] == "0"):
+                            wall = Wall(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top)
+                            wall.add(self.collisions)
                     if "destination" in tile_special:
                         pos = (25, 50)
                         if "position" in tile_special:

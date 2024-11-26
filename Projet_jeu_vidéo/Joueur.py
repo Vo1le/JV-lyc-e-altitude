@@ -44,7 +44,7 @@ class Joueur(py.sprite.Sprite):
         else:
             self.vitesse.move_towards_ip(py.math.Vector2(0, self.vitesse.y), self.friction * dt)
         
-        if input.x != 0.0 and input.y != 0.0 and self.vitesse.length != 0.0:
+        if input.x != 0.0 and input.y != 0.0 and self.vitesse.length() != 0.0:
             self.vitesse.scale_to_length(self.vitesse.length() - self.acceleration * dt / RACINEDE2)
         
         
