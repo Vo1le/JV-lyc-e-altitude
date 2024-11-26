@@ -39,7 +39,7 @@ def main():
         for name in dirs:
             if not name in [FOLDER_PATH, TILE_MAP_FOLDER_NAME, "__pycache__"]:
                 folders.append({
-                    "path": os.path.join(root, name),
+                    "path": name,
                     "rect": pygame.Rect((x, y), (200.0, 100.0))
                 })
                 y += 120.0
@@ -222,10 +222,10 @@ def main():
                         editing_tile_text += event.unicode
                     continue
                 if event.key == pygame.K_ESCAPE:
-                    dialogue_quitter(layers, map_sauvegarde, images)
+                    dialogue_quitter(layers, map_sauvegarde, images, TILE_MAP_SAVE_FOLDER_NAME)
                 elif event.key == pygame.K_q:
                     map_sauvegarde = True
-                    save_everything(layers, images)
+                    save_everything(layers, images, TILE_MAP_SAVE_FOLDER_NAME)
                 elif event.key == pygame.K_RETURN:
                     if not type(editing_tile_coords) is bool:
                         map_sauvegarde = False
@@ -302,7 +302,7 @@ def main():
 
             
             if event.type == pygame.QUIT:
-                dialogue_quitter(layers, map_sauvegarde, images)
+                dialogue_quitter(layers, map_sauvegarde, images, TILE_MAP_SAVE_FOLDER_NAME)
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -332,11 +332,11 @@ def main():
                     if not type(placing_rect) is bool and menu.dragging != -1 and not (placing_rect.width == 0 or placing_rect.height == 0):
                         placing_rect.width /= zoom_factor
                         placing_rect.height /= zoom_factor
-                        x = placing_rect.left
+                        x = placing_rect.left + 1
                         changements = []
-                        while x < placing_rect.right:
-                            y = placing_rect.top
-                            while y < placing_rect.bottom:
+                        while x < placing_rect.right - 1:
+                            y = placing_rect.top + 1
+                            while y < placing_rect.bottom - 1:
                                 coords = (x, y)
                                 changement = {
                                     "pos": coords,
@@ -499,7 +499,7 @@ def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1, special: dict = {}):
 
 def get_tile_from_map(TILE_MAP, coords, zoom_factor=1):
     cell_x, cell_y = get_tile_coords(coords, zoom_factor)
-    if 0 < cell_x < MapSize.width / TILE_SIZE - 1 and 0 < cell_y < MapSize.height / TILE_SIZE - 1:
+    if 0 <= cell_x < MapSize.width / TILE_SIZE and 0 <= cell_y < MapSize.height / TILE_SIZE:
         return TILE_MAP[cell_y][cell_x]
     else:
         return {"nom": VIDE, "special": {}}
@@ -541,6 +541,7 @@ def draw_help(screen: pygame.Surface):
 class Menu:
     def __init__(self, images: dict):
         self.menu_image = pygame.image.load("menu.png")
+        self.menu_image = pygame.transform.scale(self.menu_image, (TILE_SIZE * 4 + 5, self.menu_image.get_height()))
         self.menu_image.set_alpha(200)
         self.edit_image = pygame.image.load("edit.png")
         self.export_image = pygame.image.load("export.png")
@@ -579,7 +580,7 @@ class Menu:
                     rect = screen.blit(img, pos)
                     self.collisionRects.append({"image": img, "rect": rect, "key": key})
                 
-                if offset_x + TILE_SIZE < self.menu_image.get_width():
+                if offset_x + TILE_SIZE * 2 < self.menu_image.get_width():
                     offset_x += TILE_SIZE
                 else:
                     y += TILE_SIZE
@@ -609,13 +610,13 @@ def load_map(file_name):
         TILE_MAP = [[[{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)] for _ in range(MapSize.height // TILE_SIZE)] for _ in range(NUM_LAYERS)]
     return TILE_MAP
 
-def save_everything(TILE_MAP, images):
+def save_everything(TILE_MAP, images, save_folder_name):
     save_map_image(TILE_MAP, images)
     for i, map_surface in enumerate(map_surfaces):
-        path = TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_IMAGE_FILE_NAME
+        path = save_folder_name + "/" + TILE_MAP_IMAGE_FILE_NAME
         pygame.image.save(map_surface, path[:path.find(".")] + str(i) + path[path.find("."):])
-    save_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_FILE_NAME, TILE_MAP)
-    save_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
+    save_map(save_folder_name + "/" + TILE_MAP_FILE_NAME, TILE_MAP)
+    save_map(save_folder_name + "/" + TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
 
 def save_map(file_name, TILE_MAP, gamemap=True):
     tile_map = TILE_MAP
@@ -653,7 +654,7 @@ def save_map_image(TILE_MAP, images):
             for x, tile in enumerate(row):
                 map_surface.blit(images[tile["nom"]], (x * TILE_SIZE, y * TILE_SIZE))
 
-def dialogue_quitter(TILE_MAP, map_sauvegarde, images):
+def dialogue_quitter(TILE_MAP, map_sauvegarde, images, save_folder_name):
     pygame.quit()
     if not map_sauvegarde:
         print("\n\n")
@@ -661,7 +662,7 @@ def dialogue_quitter(TILE_MAP, map_sauvegarde, images):
         for i in range(5):
             s = input("Vous avez quitté l'éditeur de niveau sans sauvegarder, voulez vous le faire maintenant? (oui/non) ").lower()
             if s == "oui":
-                save_everything(TILE_MAP, images)
+                save_everything(TILE_MAP, images, save_folder_name)
                 break
             print()
             if s == "non":

@@ -71,8 +71,8 @@ class Map(py.sprite.Sprite):
             pos = (0, 0)
             surface.blit(spr, pos, (positionJoueur[0], positionJoueur[1], positionJoueur[0] + GAME_SCREEN_WIDTH, positionJoueur[1] + GAME_SCREEN_HEIGHT))
         else:
-            pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH - GAME_SCREEN_WIDTH / 2 - GAME_SCREEN_WIDTH / 2 * zoom), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT - GAME_SCREEN_HEIGHT / 2 - GAME_SCREEN_HEIGHT / 2 * zoom))
-            surface.blit(py.transform.scale(spr, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
+            pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH / 2 - GAME_SCREEN_WIDTH / 2 * zoom), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT / 2 - GAME_SCREEN_HEIGHT / 2 * zoom))
+            surface.blit(py.transform.scale_by(spr, zoom), pos)
 
 
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites

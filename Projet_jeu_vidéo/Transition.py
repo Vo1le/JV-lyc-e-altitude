@@ -56,10 +56,10 @@ class Transition:
             screen.blit(self.surface, (0, 0))
         elif self.transitionType == "circle":
             if not self.reverse:
-                radius = pygame.math.lerp(0, self.gameScreenDiag, self.time / self.end) + 5
+                radius = pygame.math.lerp(0, self.gameScreenDiag, self.time / self.end) + 10
                 pygame.draw.circle(screen, (0, 0, 0), (self.gameScreenSize[0] / 2, self.gameScreenSize[1] / 2), radius)
             else:
-                radius = self.gameScreenDiag
+                radius = self.gameScreenDiag + 5
                 width = int(pygame.math.lerp(0, self.gameScreenDiag, self.time / self.end))
                 pygame.draw.circle(screen, (0, 0, 0), (self.gameScreenSize[0] / 2, self.gameScreenSize[1] / 2), radius, width)
     
