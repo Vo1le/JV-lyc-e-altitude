@@ -4,30 +4,50 @@ import os
 import pickle
 from math import ceil, floor
 from attributs import *
+from settings import *
 
 pygame.init()
 
 TITLE = "Tile Map System"
 BG_COLOR = (255, 255, 255)
 
+# on récupéres les valeurs des settings
+
+file_path = "settings.txt" 
+parametres = get_variables_from_txt(file_path)
+
 # constantes pour le zoom
 MIN_ZOOM = 0.2
 MAX_ZOOM = 5
 
+
 SCREEN_WIDTH = 900
-SCREEN_HEIGHT = 700
+SCREEN_HEIGHT = 600
+
+if parametres['fullscreen'] == 'False':
+    SCREEN_WIDTH = parametres['width']
+    SCREEN_HEIGHT = parametres['height']
+    HELP_BACKGROUND = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+elif parametres['fullscreen'] == 'True':
+    HELP_BACKGROUND = pygame.Surface(size=(0,0))
+    SCREEN_WIDTH = infoObject = pygame.display.Info().current_w
+    SCREEN_HEIGHT = infoObject = pygame.display.Info().current_h
+
 
 FONT = pygame.font.Font(size=32)
 
-HELP_BACKGROUND = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
 HELP_BACKGROUND.fill(pygame.Color(200, 200, 100))
 HELP_BACKGROUND.set_alpha(150)    
 
 map_surfaces: list[pygame.Surface] = []
 
-def main():
 
-    screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
+def main():
+    if parametres['fullscreen'] == 'False':
+        screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
+    else : 
+        screen = pygame.display.set_mode(size=(0,0))
+
     pygame.display.set_caption(TITLE)
     FPS = 30
     fpsClock = pygame.time.Clock()
@@ -53,10 +73,20 @@ def main():
         {"rect": pygame.Rect(300, 100.0, 300, 100), "name": "commencer"},
     ]
 
+    SettingVars = [
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - SCREEN_HEIGHT + 10, 300, 100), "name": "Home screen"},
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - SCREEN_HEIGHT + 120, 300, 100), "name": "Apply"},
+        {"rect": pygame.Rect(SCREEN_WIDTH - SCREEN_WIDTH, SCREEN_HEIGHT - SCREEN_HEIGHT + 10, 300, 100), "name": "width", "val": parametres["width"]},
+        {"rect": pygame.Rect(SCREEN_WIDTH - SCREEN_WIDTH , SCREEN_HEIGHT - SCREEN_HEIGHT + 110, 300, 100), "name": "height", "val": parametres["height"]},
+        {"rect": pygame.Rect(SCREEN_WIDTH - SCREEN_WIDTH, SCREEN_HEIGHT - SCREEN_HEIGHT + 210, 300, 100), "name": "Fullscreen",  "val": parametres["fullscreen"]},
+    ]
+
     running = True
     editing = False
+    editingScreen = False
     editingText = ""
     choseFile = False
+    settingstoggle = False
 
     while running:
         for event in pygame.event.get():
@@ -64,12 +94,25 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-                elif event.key != pygame.K_RETURN and not type(editing) is bool:
+                elif event.key != pygame.K_RETURN and not type(editing) is bool or event.key != pygame.K_RETURN and not type(editingScreen) is bool:
                     if event.key == pygame.K_BACKSPACE:
                         editingText = editingText[:-1]
                     else:
                         editingText += event.unicode
                 elif event.key == pygame.K_RETURN:
+                    if not type(editingScreen) is bool:
+                        if editingText.isdigit() :
+                            editingText = int(editingText)
+                        else:
+                            print("Valeur doit etre un nombre!")
+                        parametres[editingScreen] = editingText
+                        if editingScreen == 'width':
+                            SettingVars[2]['val'] = editingText
+                        else : 
+                            SettingVars[3]['val'] = editingText
+                        editingText = ""
+                        editingScreen = False
+
                     if not type(editing) is bool:
                         try:
                             if editingText:
@@ -86,7 +129,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if not choseFile:
+                    if not choseFile and not settingstoggle:
                         for folder in folders:
                             if folder["rect"].collidepoint((mouse_x, mouse_y)):
                                 TILE_MAP_SAVE_FOLDER_NAME = folder["path"]
@@ -97,6 +140,30 @@ def main():
                                         MapSize.setWidth(int(text[:sep]))
                                         MapSize.setHeight(int(text[sep + 1:]))
                                 choseFile = True
+                        if pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).collidepoint((mouse_x, mouse_y)):
+                            settingstoggle = True
+                    elif settingstoggle and not choseFile :
+                        for button in SettingVars:
+                            if button["rect"].collidepoint((mouse_x, mouse_y)):
+                                if button["name"] == "Home screen":
+                                    settingstoggle = False
+                                elif button["name"] == "Apply":
+                                    if parametres['fullscreen'] == 'False':
+                                        screen = pygame.display.set_mode(size=(parametres['width'],parametres['height']))
+                                    else : 
+                                        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                                    update_variable_in_txt(file_path, 'width', parametres['width'])
+                                    update_variable_in_txt(file_path, 'height', parametres['height'])
+                                    update_variable_in_txt(file_path, 'fullscreen', parametres['fullscreen'])
+                                elif button["name"] == "Fullscreen":
+                                    if parametres["fullscreen"] == 'False':
+                                        parametres["fullscreen"] = 'True'
+                                    else:
+                                        parametres["fullscreen"] = 'False'
+                                    button["val"] = parametres["fullscreen"]
+                                else : 
+                                    editingScreen = button["name"]
+                                    
                     else:
                         for button in buttonsVars:
                             if button["rect"].collidepoint((mouse_x, mouse_y)):
@@ -107,11 +174,30 @@ def main():
 
         screen.fill(BG_COLOR)
 
-        if not choseFile:
+        if not choseFile and not settingstoggle:
             for folder in folders:
                 pygame.draw.rect(screen, (0, 0, 0), folder["rect"], 10)
                 path_img = FONT.render(folder["path"], True, (0, 100, 100))
                 screen.blit(path_img, (folder["rect"].topleft[0] + 10, folder["rect"].topleft[1] + 28))
+            
+            pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100), 10)
+            path_img = FONT.render('Reglages', True, (0, 100, 100))
+            screen.blit(path_img, (pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).topleft[0] + 10, pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).topleft[1] + 28))
+
+        elif settingstoggle and not choseFile :
+            for button in SettingVars:
+                pygame.draw.rect(screen, (0, 0, 0), button["rect"], 10)
+                if button["name"] == "Apply" or button["name"] == "Home screen" :
+                    text_img = FONT.render(button["name"], True, (0, 100, 100))
+                else : 
+                    text_img = FONT.render(button["name"] + ": " + str(button["val"]), True, (0, 100, 100))
+                screen.blit(text_img, (button["rect"].topleft[0] + 10, button["rect"].topleft[1] + 28))
+            if not type(editingScreen) is bool : 
+                pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8, SCREEN_WIDTH * 6 / 8, SCREEN_HEIGHT * 6 / 8))
+                text_img = FONT.render("Rentrez une valeur pour: " + button["name"], True, (0, 200, 200))
+                screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8))
+                text_img = FONT.render(editingText, True, (0, 255, 255))
+                screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8 + 64))
         else:
             for button in buttonsVars:
                 pygame.draw.rect(screen, (100, 200, 0), button["rect"], 10)
@@ -127,6 +213,7 @@ def main():
                 screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8))
                 text_img = FONT.render(editingText, True, (0, 255, 255))
                 screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8 + 64))
+
 
         pygame.display.update()
 
