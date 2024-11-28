@@ -108,11 +108,9 @@ def main():
                         if editingScreen == 'width' and editingText >= 900 :
                             parametres[editingScreen] = editingText
                             SettingVars[2]['val'] = editingText
-                            print("hgi")
                         elif editingScreen == 'height' and editingText >= 600 : 
                             parametres[editingScreen] = editingText
                             SettingVars[3]['val'] = editingText
-                            print("hgsi")
                         editingText = ""
                         editingScreen = False
 
