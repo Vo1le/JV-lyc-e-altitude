@@ -74,11 +74,11 @@ def main():
     ]
 
     SettingVars = [
-        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - SCREEN_HEIGHT + 10, 300, 100), "name": "Home screen"},
-        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - SCREEN_HEIGHT + 120, 300, 100), "name": "Apply"},
-        {"rect": pygame.Rect(SCREEN_WIDTH - SCREEN_WIDTH, SCREEN_HEIGHT - SCREEN_HEIGHT + 10, 300, 100), "name": "width", "val": parametres["width"]},
-        {"rect": pygame.Rect(SCREEN_WIDTH - SCREEN_WIDTH , SCREEN_HEIGHT - SCREEN_HEIGHT + 110, 300, 100), "name": "height", "val": parametres["height"]},
-        {"rect": pygame.Rect(SCREEN_WIDTH - SCREEN_WIDTH, SCREEN_HEIGHT - SCREEN_HEIGHT + 210, 300, 100), "name": "Fullscreen",  "val": parametres["fullscreen"]},
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, 10, 300, 100), "name": "Home screen"},
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, 120, 300, 100), "name": "Apply"},
+        {"rect": pygame.Rect(0, 10, 300, 100), "name": "width", "val": parametres["width"]},
+        {"rect": pygame.Rect(0, 110, 300, 100), "name": "height", "val": parametres["height"]},
+        {"rect": pygame.Rect(0, 210, 300, 100), "name": "Fullscreen",  "val": parametres["fullscreen"]},
     ]
 
     running = True
@@ -150,18 +150,21 @@ def main():
                                 elif button["name"] == "Apply":
                                     if parametres['fullscreen'] == 'False':
                                         screen = pygame.display.set_mode(size=(parametres['width'],parametres['height']))
-                                    else : 
+                                    else: 
                                         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
                                     update_variable_in_txt(file_path, 'width', parametres['width'])
                                     update_variable_in_txt(file_path, 'height', parametres['height'])
                                     update_variable_in_txt(file_path, 'fullscreen', parametres['fullscreen'])
+                                    width = screen.get_width()
+                                    SettingVars[0]["rect"].x = width - 300
+                                    SettingVars[1]["rect"].x = width - 300
                                 elif button["name"] == "Fullscreen":
                                     if parametres["fullscreen"] == 'False':
                                         parametres["fullscreen"] = 'True'
                                     else:
                                         parametres["fullscreen"] = 'False'
                                     button["val"] = parametres["fullscreen"]
-                                else : 
+                                else:
                                     editingScreen = button["name"]
                                     
                     else:
@@ -194,7 +197,7 @@ def main():
                 screen.blit(text_img, (button["rect"].topleft[0] + 10, button["rect"].topleft[1] + 28))
             if not type(editingScreen) is bool : 
                 pygame.draw.rect(screen, (0, 0, 0), (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8, SCREEN_WIDTH * 6 / 8, SCREEN_HEIGHT * 6 / 8))
-                text_img = FONT.render("Rentrez une valeur pour: " + button["name"], True, (0, 200, 200))
+                text_img = FONT.render("Rentrez une valeur pour: " + editingScreen, True, (0, 200, 200))
                 screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8))
                 text_img = FONT.render(editingText, True, (0, 255, 255))
                 screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8 + 64))
