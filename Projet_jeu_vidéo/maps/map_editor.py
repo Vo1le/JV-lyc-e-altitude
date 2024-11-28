@@ -105,11 +105,14 @@ def main():
                             editingText = int(editingText)
                         else:
                             print("Valeur doit etre un nombre!")
-                        parametres[editingScreen] = editingText
-                        if editingScreen == 'width':
+                        if editingScreen == 'width' and editingText >= 900 :
+                            parametres[editingScreen] = editingText
                             SettingVars[2]['val'] = editingText
-                        else : 
+                            print("hgi")
+                        elif editingScreen == 'height' and editingText >= 600 : 
+                            parametres[editingScreen] = editingText
                             SettingVars[3]['val'] = editingText
+                            print("hgsi")
                         editingText = ""
                         editingScreen = False
 
