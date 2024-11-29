@@ -85,10 +85,10 @@ def main():
         ecran.fill(color)
 
         for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER):
-            mapjeu.draw(ecran, joueurCenter, zoom, layer)
+            mapjeu.draw(dt, ecran, joueurCenter, zoom, layer)
         joueur.draw(ecran, zoom, joueurCenter)
         for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER, NUM_LAYERS):
-            mapjeu.draw(ecran, joueurCenter, zoom, layer)
+            mapjeu.draw(dt, ecran, joueurCenter, zoom, layer)
 
         transitionEcran.draw(ecran)
         transitionZone.draw(ecran)

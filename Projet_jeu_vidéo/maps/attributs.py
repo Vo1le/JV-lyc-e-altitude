@@ -1,5 +1,6 @@
 from pygame.math import Vector2
 import pygame, os
+from math import floor
 
 # Noms des attributs
 MUR = 1
@@ -36,7 +37,7 @@ def main():
     tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(4, 4, [], [MUR], [Vector2(3, i) for i in range(4)], [Vector2(i, 2) for i in range(3)], [Vector2(i, 3) for i in range(3)])]}
 
     # animations:
-    animations["Grass.png"] = {"tile_size": 16, "tiles": create_animation([Vector2(0, i) for i in range(3)])}
+    animations["Grass.png::0::0;0"] = {"tile_size": 16, "speed": 0.5, "tiles": create_animation("Grass.png::0", [Vector2(i, 0) for i in range(3)])}
 
 # Paramétres de la map:
 
@@ -92,15 +93,15 @@ def create_tile_atlas(size_x: int, size_y: int, default: list = [], fill_with: l
             tile_atlas[int(arg.y)][int(arg.x)] = fill_with.copy()
     return tile_atlas
 
-def create_animation(*args: Vector2 | list[Vector2]):
+def create_animation(name: str, *args: Vector2 | list[Vector2]):
     anim = []
     for arg in args:
         if type(arg) is list:
-            anim.extend(arg)
+            for v in arg:
+                anim.append(name + "::" + str(int(v.x)) + ";" + str(int(v.y)))
         else:
-            anim.append(arg)
+            anim.append(name + "::" + str(int(arg.x)) + ";" + str(int(arg.y)))
     return anim
-
 
 class MapSize:
     width = WIDTH_MAP
@@ -140,7 +141,7 @@ def setup_images(folder_path, tile_map_folder_name):
                 print("tile map " + file + " n'est pas décrite dans attributs.py")
     return images
 
-def draw_tile_map(screen: pygame.Surface, screen_width, screen_height, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=0):
+def draw_tile_map(dt, screen: pygame.Surface, screen_width, screen_height, TILE_MAP, images, animations, zoom_factor=1, offset_x=0, offset_y=0):
     scaled_tile_size = TILE_SIZE * zoom_factor
     scaled_images = {}
     if zoom_factor != 1:
@@ -150,13 +151,21 @@ def draw_tile_map(screen: pygame.Surface, screen_width, screen_height, TILE_MAP,
         scaled_images = images
     for y, row in enumerate(TILE_MAP):
         for x, tile_dict in enumerate(row):
-            tile = tile_dict["nom"]
-            if not tile in images:
-                print("Il manque le fichier image: " + tile)
-                continue
             screen_coords = (x * scaled_tile_size + offset_x, y * scaled_tile_size + offset_y)
             if -scaled_tile_size < screen_coords[0] < screen_width and -scaled_tile_size < screen_coords[1] < screen_height:
-                tile_img = scaled_images[tile]
+                tile = tile_dict["nom"]
+                if not tile in images:
+                    print("Il manque le fichier image: " + tile)
+                    continue
+                if tile in animations:
+                    if not "time" in tile_dict["special"]:
+                        tile_dict["special"]["time"] = 0.0
+                    tile_dict["special"]["time"] += dt * animations[tile]["speed"]
+                    if tile_dict["special"]["time"] > 1.0:
+                        tile_dict["special"]["time"] = 0.0
+                    tile_img = scaled_images[animations[tile]["tiles"][min(len(animations[tile]["tiles"]) - 1, floor(pygame.math.lerp(0, len(animations[tile]["tiles"]), tile_dict["special"]["time"])))]]
+                else:
+                    tile_img = scaled_images[tile]
                 screen.blit(tile_img, screen_coords)
 
 main()

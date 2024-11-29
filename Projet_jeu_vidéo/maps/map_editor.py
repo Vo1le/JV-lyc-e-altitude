@@ -279,6 +279,8 @@ def main():
     changements_max = 10
     dernier_tuile_placee_coords = False
 
+    paused = False
+
     # loop de jeu    
     running = True
     while running:
@@ -315,6 +317,8 @@ def main():
                     menu.visible = not menu.visible
                     if not menu.visible:
                         menu.dragging = -1
+                elif event.key == pygame.K_p:
+                    paused = not paused
                 elif event.key == pygame.K_c:
                     if not type(placing_rect) is bool:
                         copied_rect = []
@@ -469,6 +473,8 @@ def main():
         else:
             placing_rect = False
 
+        dt = fpsClock.get_time() / 1000 * int(not paused)
+
         screen.fill(BG_COLOR)
 
         if placing_tile and type(placing_rect) is bool:
@@ -493,7 +499,7 @@ def main():
             using_images = images
             if i != current_layer:
                 using_images = images_faded
-            draw_tile_map(screen, SCREEN_WIDTH, SCREEN_HEIGHT, layer, using_images, zoom_factor, offset_x, offset_y)
+            draw_tile_map(dt, screen, SCREEN_WIDTH, SCREEN_HEIGHT, layer, using_images, animations, zoom_factor, offset_x, offset_y)
 
         for x in range(0, MapSize.width, GAME_SCREEN_WIDTH):
             screen_coords = (x * zoom_factor + offset_x, offset_y)

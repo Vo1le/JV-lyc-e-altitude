@@ -24,10 +24,20 @@ class Porte(py.sprite.Sprite):
         self.position = position
 
 class Tile(py.sprite.Sprite):
-    def __init__(self, x, y, image, *groups):
+    def __init__(self, x, y, image, animated="", time=0.0, *groups):
         super().__init__(*groups)
         self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.image = image
+        self.animated = animated
+        if self.animated != "":
+            self.time = time
+    
+    def update(self, dt, images):
+        if self.animated == "": return
+        self.time += dt * animations[self.animated]["speed"]
+        if self.time > 1.0:
+            self.time = 0.0
+        self.image = images[animations[self.animated]["tiles"][min(len(animations[self.animated]["tiles"]) - 1, floor(pygame.math.lerp(0, len(animations[self.animated]["tiles"]), self.time)))]]
 
 class Map(py.sprite.Sprite):
     def __init__(self, x: int, y: int, path: str):
@@ -58,7 +68,12 @@ class Map(py.sprite.Sprite):
                     if x % math.floor(GAME_SCREEN_WIDTH / TILE_SIZE) == 0 and y % math.floor(GAME_SCREEN_HEIGHT / TILE_SIZE) == 0:
                         self.tile_groups[i][-1].append(extendedGroup())
                     if tile["nom"] != VIDE:
-                        Tile(x * TILE_SIZE, y * TILE_SIZE, self.images[tile["nom"]], self.tile_groups[i][-1][math.floor(x / (GAME_SCREEN_WIDTH / TILE_SIZE))])
+                        animated = ""
+                        time = 0.0
+                        if tile["nom"] in animations:
+                            animated = tile["nom"]
+                            time = tile["special"]["time"]
+                        Tile(x * TILE_SIZE, y * TILE_SIZE, self.images[tile["nom"]], animated, time, self.tile_groups[i][-1][math.floor(x / (GAME_SCREEN_WIDTH / TILE_SIZE))])
     
     def apply_attributs(self):
         self.collisions = extendedGroup()
@@ -80,7 +95,7 @@ class Map(py.sprite.Sprite):
                         porte = Porte(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["destination"], pos)
                         porte.add(self.portes)
     
-    def draw(self, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
+    def draw(self, dt, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
         layer_groups = self.tile_groups[layer]
         zoom = round(p_zoom, 2)
         topleft = self.rect.topleft
@@ -89,12 +104,14 @@ class Map(py.sprite.Sprite):
             relative_pos = (topleft[0] + positionJoueur[0], topleft[1] + positionJoueur[1])
             group_pos = (math.floor(relative_pos[0] / GAME_SCREEN_WIDTH), math.floor(relative_pos[1] / GAME_SCREEN_HEIGHT))
             layer_groups[group_pos[1]][group_pos[0]].draw(surface, positionJoueurGlobal, zoom)
+            layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)
         else:
             relative_pos = (topleft[0] + positionJoueur[0], topleft[1] + positionJoueur[1])
             for y in range(max(0, math.floor(relative_pos[1]) - GAME_SCREEN_HEIGHT / zoom), math.floor(min(len(layer_groups) * GAME_SCREEN_HEIGHT, relative_pos[1] + GAME_SCREEN_HEIGHT / zoom)), GAME_SCREEN_HEIGHT):
                 for x in range(max(0, math.floor(relative_pos[0]) - GAME_SCREEN_WIDTH / zoom), math.floor(min(len(layer_groups[math.floor(y / GAME_SCREEN_HEIGHT)]) * GAME_SCREEN_WIDTH, relative_pos[0] + GAME_SCREEN_WIDTH / zoom)), GAME_SCREEN_WIDTH):
                     group_pos = (math.floor(x / GAME_SCREEN_WIDTH), math.floor(y / GAME_SCREEN_HEIGHT))
                     layer_groups[group_pos[1]][group_pos[0]].draw(surface, positionJoueurGlobal, zoom)
+                    layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)
 
 
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
