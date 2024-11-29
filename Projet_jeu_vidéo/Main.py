@@ -61,6 +61,7 @@ def main():
 
         # // mise a niveaux des objets du monde (joueur, pnj, ...)
         dt = fpsClock.get_time() / 1000
+        #print(fpsClock.get_fps())
         if not transitionEcran.playing and not transitionZone.playing:
             joueurCellStart = get_joueur_position_cell(joueur.rect.center)
             positionJoueurStart = joueur.rect.center

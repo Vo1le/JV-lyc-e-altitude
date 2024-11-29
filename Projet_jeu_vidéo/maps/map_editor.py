@@ -239,25 +239,8 @@ def main():
             map_surfaces.append(surface)
 
     # Set up des images
-    images = {}
-    for file in os.listdir(FOLDER_PATH):
-        if os.path.isfile(os.path.join(FOLDER_PATH, file)):
-            images[file] = pygame.transform.scale(pygame.image.load(os.path.join(FOLDER_PATH, file)), (TILE_SIZE, TILE_SIZE))
-    for file in os.listdir(TILE_MAP_FOLDER_NAME):
-        if os.path.isfile(os.path.join(TILE_MAP_FOLDER_NAME, file)):
-            if file in tile_maps.keys():
-                img = pygame.image.load(os.path.join(TILE_MAP_FOLDER_NAME, file)).convert_alpha()
-                size = tile_maps[file]["tile_size"]
-                for i, atlas in enumerate(tile_maps[file]["attributs"]):
-                    for y, row in enumerate(atlas):
-                        for x, _ in enumerate(row):
-                            surface = pygame.Surface((size, size)).convert_alpha()
-                            surface.fill(pygame.Color(0, 0, 0, 0))
-                            surface.blit(img, (0, 0), (x * size, y * size, size, size))
-                            img_name = file + "::" + str(i) + "::" + str(x) + ";" + str(y)
-                            images[img_name] = pygame.transform.scale(surface, (TILE_SIZE, TILE_SIZE))
-            else:
-                print("tile map " + file + " n'est pas décrite dans attributs.py")
+    images = setup_images(FOLDER_PATH, TILE_MAP_FOLDER_NAME)
+
     images_faded = {}
     for image_name in images:
         img: pygame.Surface = images[image_name].copy()
@@ -510,7 +493,7 @@ def main():
             using_images = images
             if i != current_layer:
                 using_images = images_faded
-            draw_tile_map(screen, layer, using_images, zoom_factor, offset_x, offset_y)
+            draw_tile_map(screen, SCREEN_WIDTH, SCREEN_HEIGHT, layer, using_images, zoom_factor, offset_x, offset_y)
 
         for x in range(0, MapSize.width, GAME_SCREEN_WIDTH):
             screen_coords = (x * zoom_factor + offset_x, offset_y)
@@ -560,27 +543,6 @@ def main():
 
     pygame.quit()
     sys.exit()
-
-# dessiner la map
-def draw_tile_map(screen, TILE_MAP, images, zoom_factor=1, offset_x=0, offset_y=0):
-    scaled_tile_size = TILE_SIZE * zoom_factor
-    scaled_images = {}
-    if zoom_factor != 1:
-        for img in images:
-            scaled_images[img] = pygame.transform.scale(images[img], (scaled_tile_size, scaled_tile_size))
-    else:
-        scaled_images = images
-    for y, row in enumerate(TILE_MAP):
-        for x, tile_dict in enumerate(row):
-            tile = tile_dict["nom"]
-            if not tile in images:
-                print("Il manque le fichier image: " + tile)
-                pygame.quit()
-                sys.exit()
-            screen_coords = (x * scaled_tile_size + offset_x, y * scaled_tile_size + offset_y)
-            if -TILE_SIZE < screen_coords[0] < SCREEN_WIDTH and -TILE_SIZE < screen_coords[1] < SCREEN_HEIGHT:
-                tile_img = scaled_images[tile]
-                screen.blit(tile_img, screen_coords)
 
 
 def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1, special: dict = {}):
