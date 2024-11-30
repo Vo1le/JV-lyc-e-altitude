@@ -35,9 +35,11 @@ def main():
 
     tile_maps["Grass.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(11, 7, [], ["Grass.png"], Vector2(0, 0))]}
     tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(4, 4, [], [MUR], [Vector2(3, i) for i in range(4)], [Vector2(i, 2) for i in range(3)], [Vector2(i, 3) for i in range(3)])]}
+    tile_maps["Water.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(5, 3, [MUR])]}
 
     # animations:
     animations["Grass.png::0::0;0"] = {"tile_size": 16, "speed": 0.5, "tiles": create_animation("Grass.png::0", [Vector2(i, 0) for i in range(3)])}
+    animations["Water.png::0::2;0"] = {"tile_size": 16, "speed": 1, "tiles": create_animation("Water.png::0", [Vector2(i, 0) for i in range(2, 5)])}
 
 # Paramétres de la map:
 
@@ -145,27 +147,39 @@ def draw_tile_map(dt, screen: pygame.Surface, screen_width, screen_height, TILE_
     scaled_tile_size = TILE_SIZE * zoom_factor
     scaled_images = {}
     if zoom_factor != 1:
-        for img in images:
-            scaled_images[img] = pygame.transform.scale(images[img], (scaled_tile_size, scaled_tile_size))
+        scaled_images = {}
     else:
         scaled_images = images
-    for y, row in enumerate(TILE_MAP):
-        for x, tile_dict in enumerate(row):
-            screen_coords = (x * scaled_tile_size + offset_x, y * scaled_tile_size + offset_y)
-            if -scaled_tile_size < screen_coords[0] < screen_width and -scaled_tile_size < screen_coords[1] < screen_height:
-                tile = tile_dict["nom"]
-                if not tile in images:
-                    print("Il manque le fichier image: " + tile)
-                    continue
-                if tile in animations:
-                    if not "time" in tile_dict["special"]:
-                        tile_dict["special"]["time"] = 0.0
-                    tile_dict["special"]["time"] += dt * animations[tile]["speed"]
-                    if tile_dict["special"]["time"] > 1.0:
-                        tile_dict["special"]["time"] = 0.0
-                    tile_img = scaled_images[animations[tile]["tiles"][min(len(animations[tile]["tiles"]) - 1, floor(pygame.math.lerp(0, len(animations[tile]["tiles"]), tile_dict["special"]["time"])))]]
-                else:
-                    tile_img = scaled_images[tile]
-                screen.blit(tile_img, screen_coords)
+    rangeStartY = max(0, floor((-offset_y - scaled_tile_size) / scaled_tile_size))
+    rangeEndY = min(len(TILE_MAP), floor((-offset_y + screen_height + scaled_tile_size) / scaled_tile_size))
+    for y, row in enumerate(TILE_MAP[rangeStartY:rangeEndY]):
+        rangeStartX = max(0, floor((-offset_x - scaled_tile_size) / scaled_tile_size))
+        rangeEndX = min(len(row), floor((-offset_x + screen_width + scaled_tile_size) / scaled_tile_size))
+        for x, tile_dict in enumerate(row[rangeStartX:rangeEndX]):
+            screen_coords = ((rangeStartX + x) * scaled_tile_size + offset_x, (rangeStartY + y) * scaled_tile_size + offset_y)
+            tile = tile_dict["nom"]
+            if not tile in images:
+                print("Il manque le fichier image: " + tile)
+                continue
+            if zoom_factor != 1 and not tile in scaled_images:
+                scaled_images[tile] = pygame.transform.scale(images[tile], (scaled_tile_size, scaled_tile_size))
+            if tile in animations:
+                if not "time" in tile_dict["special"]:
+                    tile_dict["special"]["time"] = 0.0
+                try:
+                    tile_dict["special"]["time"] = float(tile_dict["special"]["time"])
+                except ValueError:
+                    print("Valeur doit etre un nombre!")
+                    tile_dict["special"]["time"] = 0.0
+                tile_dict["special"]["time"] += dt * animations[tile]["speed"]
+                while tile_dict["special"]["time"] > 1.0:
+                    tile_dict["special"]["time"] -= 1.0
+                anim_tile = animations[tile]["tiles"][min(len(animations[tile]["tiles"]) - 1, floor(pygame.math.lerp(0, len(animations[tile]["tiles"]), tile_dict["special"]["time"])))]
+                if zoom_factor != 1 and not anim_tile in scaled_images:
+                    scaled_images[anim_tile] = pygame.transform.scale(images[anim_tile], (scaled_tile_size, scaled_tile_size))
+                tile_img = scaled_images[anim_tile]
+            else:
+                tile_img = scaled_images[tile]
+            screen.blit(tile_img, screen_coords)
 
 main()
