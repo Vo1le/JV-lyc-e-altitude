@@ -103,12 +103,14 @@ class Map(py.sprite.Sprite):
         if zoom == 1:
             relative_pos = (topleft[0] + positionJoueur[0], topleft[1] + positionJoueur[1])
             group_pos = (math.floor(relative_pos[0] / GAME_SCREEN_WIDTH), math.floor(relative_pos[1] / GAME_SCREEN_HEIGHT))
-            layer_groups[group_pos[1]][group_pos[0]].draw(surface, positionJoueurGlobal, zoom)
-            layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)
+            if 0 <= group_pos[1] < len(layer_groups):
+                if 0 <= group_pos[0] < len(layer_groups[group_pos[1]]):
+                    layer_groups[group_pos[1]][group_pos[0]].draw(surface, positionJoueurGlobal, zoom)
+                    layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)
         else:
             relative_pos = (topleft[0] + positionJoueur[0], topleft[1] + positionJoueur[1])
-            for y in range(max(0, math.floor(relative_pos[1]) - GAME_SCREEN_HEIGHT / zoom), math.floor(min(len(layer_groups) * GAME_SCREEN_HEIGHT, relative_pos[1] + GAME_SCREEN_HEIGHT / zoom)), GAME_SCREEN_HEIGHT):
-                for x in range(max(0, math.floor(relative_pos[0]) - GAME_SCREEN_WIDTH / zoom), math.floor(min(len(layer_groups[math.floor(y / GAME_SCREEN_HEIGHT)]) * GAME_SCREEN_WIDTH, relative_pos[0] + GAME_SCREEN_WIDTH / zoom)), GAME_SCREEN_WIDTH):
+            for y in range(max(0, math.floor(relative_pos[1] - GAME_SCREEN_HEIGHT / zoom)), math.floor(min(len(layer_groups) * GAME_SCREEN_HEIGHT, relative_pos[1] + GAME_SCREEN_HEIGHT / zoom)), GAME_SCREEN_HEIGHT):
+                for x in range(max(0, math.floor(relative_pos[0] - GAME_SCREEN_WIDTH / zoom)), math.floor(min(len(layer_groups[math.floor(y / GAME_SCREEN_HEIGHT)]) * GAME_SCREEN_WIDTH, relative_pos[0] + GAME_SCREEN_WIDTH / zoom)), GAME_SCREEN_WIDTH):
                     group_pos = (math.floor(x / GAME_SCREEN_WIDTH), math.floor(y / GAME_SCREEN_HEIGHT))
                     layer_groups[group_pos[1]][group_pos[0]].draw(surface, positionJoueurGlobal, zoom)
                     layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)

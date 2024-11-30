@@ -30,16 +30,27 @@ def main():
     # create_tile_atlas(colonnes, rangées, defaut, remplir_avec, tuile_a_remplir1, tuile_a_remplir2, etc)
     # defaut: les attributs que chaque tuile va avoir. ex: [MUR] ex2: []
     # remplir_avec: les attributs que les tuiles définies avec tuile_a_remplir vont avoir. ex: [MUR]
-    # tuile_a_remplir: la position d'une tuile qui va etre remplie avec remplir_avec. ex: Vector2(x, y) ou x et y sont les coordonées de la tuile (en nombre de tuiles, commencant a 0)
+    # tuile_a_remplir: la position d'une tuile qui va etre remplie avec remplir_avec. ex: Vector2(x, y) où x et y sont les coordonées de la tuile (en nombre de tuiles, commencant a 0)
     # vous pouvez mettre autant de tuile_a_remplir que vous voulez, mais n'oubliez pas les virgules entre chaque!
 
-    tile_maps["Grass.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(11, 7, [], ["Grass.png"], Vector2(0, 0))]}
+    tile_maps["Grass.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(11, 7, [])]}
     tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(4, 4, [], [MUR], [Vector2(3, i) for i in range(4)], [Vector2(i, 2) for i in range(3)], [Vector2(i, 3) for i in range(3)])]}
     tile_maps["Water.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(5, 3, [MUR])]}
 
-    # animations:
-    animations["Grass.png::0::0;0"] = {"tile_size": 16, "speed": 0.5, "tiles": create_animation("Grass.png::0", [Vector2(i, 0) for i in range(3)])}
-    animations["Water.png::0::2;0"] = {"tile_size": 16, "speed": 1, "tiles": create_animation("Water.png::0", [Vector2(i, 0) for i in range(2, 5)])}
+    # animations
+    # pour rajouter une tuile animée:
+    # écrir: animations["nomDuFichierImage"] = {"speed": vitesseAnimation, "tiles": [nomDuFichierImagePourFrame1, nomDuFichierImagePourFrame2, etc]}
+    # remplacer nomDuFichierImage par le nom de l'image dans le repertoire tilemaps ou collisions qui sera utilisée comme base et qui sera la tuile a placer dans l'éditeur
+    # si le fichier est dans tilemaps, alors ecrire nomDuFichierImage::0::tuileX;tuileY a la place de nomDuFichierImage, où tuileX est la coordonnée sur l'axe des x de la tuile dans la tilemap, et tuileY est la meme chose sur l'axe des y
+    # remplacer vitesseAnimation par la vitesse de l'animation (combien de fois l'animation va jouer en 1 seconde)
+    # remplacer nomDuFichierImagePourFrameN par le nom du fichier image dans collisions qui sera affichée comme la Nieme frame de l'animation
+    # si nomDuFichierImagePourFrameN se trouve dans tilemaps alors écrire:
+    # [*create_animation("nomDuFichierImagePourFrames::0", Vector2(frameX, frameY))]
+    # a la place de nomDuFichierImagePourFrame1
+    # puis remplacer nomDuFichierImagePourFrames par le nom du fichier image dans tilemaps
+    # remplacer frameX et frameY par les coordonnées de la tuile dans la tilemap
+    animations["Grass.png::0::0;0"] = {"speed": 0.5, "tiles": [*create_animation("Grass.png::0", [Vector2(i, 0) for i in range(3)])]}
+    animations["Water.png::0::2;0"] = {"speed": 1, "tiles": [*create_animation("Water.png::0", [Vector2(i, 0) for i in range(2, 5)])]}
 
 # Paramétres de la map:
 
@@ -75,7 +86,8 @@ GAME_SCREEN_HEIGHT = 14
 WIDTH_MAP = 3
 HEIGHT_MAP = 2
 
-# Ne pas modifier le reste
+# !!!!! NE PAS MODIFIER LE RESTE !!!!!
+# -----------------------------------------------------------------------------------------------------------------------
 GAME_SCREEN_WIDTH *= TILE_SIZE
 GAME_SCREEN_HEIGHT *= TILE_SIZE
 WIDTH_MAP *= GAME_SCREEN_WIDTH
