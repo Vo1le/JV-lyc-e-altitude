@@ -3,7 +3,7 @@ import sys
 import os
 import pickle
 from math import ceil, floor
-from attributs import *
+import attributs
 from settings import *
 
 pygame.init()
@@ -57,7 +57,7 @@ def main():
     y = 10.0
     for root, dirs, files in os.walk("."):
         for name in dirs:
-            if not name in [FOLDER_PATH, TILE_MAP_FOLDER_NAME, "__pycache__"]:
+            if not name in [attributs.FOLDER_PATH, attributs.TILE_MAP_FOLDER_NAME, "__pycache__"]:
                 folders.append({
                     "path": name,
                     "rect": pygame.Rect((x, y), (200.0, 100.0))
@@ -68,8 +68,8 @@ def main():
                     x += 250.0
     
     buttonsVars = [
-        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 100.0, 300, 100), "name": "hauteur de la map", "var": MapSize.setHeight, "val": MapSize.getHeight},
-        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 200.0, 300, 100), "name": "largeur de la map", "var": MapSize.setWidth, "val": MapSize.getWidth},
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 100.0, 300, 100), "name": "hauteur de la map", "var": attributs.MapSize.setHeight, "val": attributs.MapSize.getHeight},
+        {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 200.0, 300, 100), "name": "largeur de la map", "var": attributs.MapSize.setWidth, "val": attributs.MapSize.getWidth},
         {"rect": pygame.Rect(300, 100.0, 300, 100), "name": "commencer"},
     ]
 
@@ -138,8 +138,8 @@ def main():
                                     with open(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt", "r") as f:
                                         text = f.read()
                                         sep = text.find(";")
-                                        MapSize.setWidth(int(text[:sep]))
-                                        MapSize.setHeight(int(text[sep + 1:]))
+                                        attributs.MapSize.setWidth(int(text[:sep]))
+                                        attributs.MapSize.setHeight(int(text[sep + 1:]))
                                 choseFile = True
                         if pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).collidepoint((mouse_x, mouse_y)):
                             settingstoggle = True
@@ -224,22 +224,22 @@ def main():
         fpsClock.tick(FPS)
     
     with open(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt", "w") as f:
-        f.write(str(MapSize.getWidth()) + ";" + str(MapSize.getHeight()))
+        f.write(str(attributs.MapSize.getWidth()) + ";" + str(attributs.MapSize.getHeight()))
             
-    path = TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_IMAGE_FILE_NAME
-    for i in range(NUM_LAYERS):
+    path = TILE_MAP_SAVE_FOLDER_NAME + "/" + attributs.TILE_MAP_IMAGE_FILE_NAME
+    for i in range(attributs.NUM_LAYERS):
         sep = path.find(".")
         if os.path.isfile(path[:i] + str(i) + path[i + 1:]):
-            surface = pygame.Surface((MapSize.width, MapSize.height), pygame.SRCALPHA)
-            surface.blit(pygame.image.load(path + str(i)), (0, 0), (0, 0, MapSize.width, MapSize.height))
+            surface = pygame.Surface((attributs.MapSize.width, attributs.MapSize.height), pygame.SRCALPHA)
+            surface.blit(pygame.image.load(path + str(i)), (0, 0), (0, 0, attributs.MapSize.width, attributs.MapSize.height))
             map_surfaces.append(surface)
         else:
-            surface = pygame.Surface((MapSize.width, MapSize.height), pygame.SRCALPHA)
+            surface = pygame.Surface((attributs.MapSize.width, attributs.MapSize.height), pygame.SRCALPHA)
             surface.fill((255, 255, 255))
             map_surfaces.append(surface)
 
     # Set up des images
-    images = setup_images(FOLDER_PATH, TILE_MAP_FOLDER_NAME)
+    images = attributs.setup_images(attributs.FOLDER_PATH, attributs.TILE_MAP_FOLDER_NAME)
 
     images_faded = {}
     for image_name in images:
@@ -247,7 +247,7 @@ def main():
         img.set_alpha(100.0)
         images_faded[image_name] = img
     
-    layers = load_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + TILE_MAP_RELOADABLE_FILE_NAME)
+    layers = load_map(TILE_MAP_SAVE_FOLDER_NAME + "/" + attributs.TILE_MAP_RELOADABLE_FILE_NAME)
     current_layer = 0
 
     # variables pour le zoom
@@ -288,7 +288,7 @@ def main():
         mouse_x, mouse_y = pygame.mouse.get_pos()
         global_mouse_x = (mouse_x - offset_x) / zoom_factor
         global_mouse_y = (mouse_y - offset_y) / zoom_factor
-        scaled_tile_size = TILE_SIZE * zoom_factor
+        scaled_tile_size = attributs.TILE_SIZE * zoom_factor
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key != pygame.K_RETURN and not type(editing_tile_coords) is bool:
@@ -333,9 +333,9 @@ def main():
                             while y < placing_rect.bottom:
                                 coords = (x, y)
                                 copied_rect[idx_x].append(get_tile_from_map(layers[current_layer], coords, 1))
-                                y += TILE_SIZE
+                                y += attributs.TILE_SIZE
                                 idx_y += 1
-                            x += TILE_SIZE
+                            x += attributs.TILE_SIZE
                             idx_x += 1
                 elif event.key == pygame.K_v:
                     if len(copied_rect) != 0:
@@ -343,7 +343,7 @@ def main():
                         changements = []
                         for x, column in enumerate(copied_rect):
                             for y, tile in enumerate(column):
-                                coords = (x * TILE_SIZE + global_mouse_x, y * TILE_SIZE + global_mouse_y)
+                                coords = (x * attributs.TILE_SIZE + global_mouse_x, y * attributs.TILE_SIZE + global_mouse_y)
                                 changement = {
                                     "pos": (coords[0], coords[1]),
                                     "tuile": get_tile_from_map(layers[current_layer], coords, 1),
@@ -355,11 +355,11 @@ def main():
                         if len(historique_changements) > changements_max:
                             historique_changements.pop()
                 elif event.key == pygame.K_UP:
-                    current_layer = min(current_layer + 1, NUM_LAYERS - 1)
+                    current_layer = min(current_layer + 1, attributs.NUM_LAYERS - 1)
                 elif event.key == pygame.K_DOWN:
                     current_layer = max(current_layer - 1, 0)
                 elif event.key == pygame.K_e:
-                    menu.dragging = VIDE
+                    menu.dragging = attributs.VIDE
                 elif event.key == pygame.K_h:
                     show_help = not show_help
                 elif event.key == pygame.K_SPACE:
@@ -423,8 +423,8 @@ def main():
                                 }
                                 changements.append(changement)
                                 add_tile_to_map(layers[current_layer], menu.dragging, coords, 1)
-                                y += TILE_SIZE
-                            x += TILE_SIZE
+                                y += attributs.TILE_SIZE
+                            x += attributs.TILE_SIZE
                         historique_changements.insert(0, changements)
                         if len(historique_changements) > changements_max:
                             historique_changements.pop()
@@ -452,7 +452,7 @@ def main():
         
         if touches_appuyes[pygame.K_LSHIFT]:
             if type(placing_rect) is bool:
-                coords = (floor(global_mouse_x / TILE_SIZE) * TILE_SIZE, floor(global_mouse_y / TILE_SIZE) * TILE_SIZE)
+                coords = (floor(global_mouse_x / attributs.TILE_SIZE) * attributs.TILE_SIZE, floor(global_mouse_y / attributs.TILE_SIZE) * attributs.TILE_SIZE)
                 placing_rect = pygame.Rect(coords, (scaled_tile_size, scaled_tile_size))
                 placing_rect_position = pygame.Vector2(coords)
             func_x = ceil
@@ -461,7 +461,7 @@ def main():
                 func_x = floor
             if global_mouse_y < placing_rect_position.y:
                 func_y = floor
-            placing_rect.size = (abs(func_x((global_mouse_x - placing_rect_position.x) / TILE_SIZE) * scaled_tile_size), abs(func_y((global_mouse_y - placing_rect_position.y) / TILE_SIZE) * scaled_tile_size))
+            placing_rect.size = (abs(func_x((global_mouse_x - placing_rect_position.x) / attributs.TILE_SIZE) * scaled_tile_size), abs(func_y((global_mouse_y - placing_rect_position.y) / attributs.TILE_SIZE) * scaled_tile_size))
             if global_mouse_x < placing_rect_position.x:
                 placing_rect.left = placing_rect_position.x - placing_rect.width / zoom_factor
             else:
@@ -479,19 +479,37 @@ def main():
 
         if placing_tile and type(placing_rect) is bool:
             coords = (mouse_x - offset_x, mouse_y - offset_y)
-            if dernier_tuile_placee_coords != coords:
-                dernier_tuile_placee_coords = coords
-                tuile = get_tile_from_map(layers[current_layer], coords, zoom_factor)
-                if tuile["nom"] != menu.dragging:
-                    changement = {
-                        "pos": (coords[0] / zoom_factor, coords[1] / zoom_factor),
-                        "tuile": tuile,
-                        "layer": current_layer
-                    }
-                    historique_changements.insert(0, changement)
+            if dernier_tuile_placee_coords != get_tile_coords(coords, zoom_factor):
+                dernier_tuile_placee_coords = get_tile_coords(coords, zoom_factor)
+                if menu.dragging in attributs.groups:
+                    changements = []
+                    for y, row in enumerate(attributs.groups[menu.dragging]):
+                        for x, tile_name in enumerate(row):
+                            cell_offset_x = global_mouse_x + x * attributs.TILE_SIZE
+                            cell_offset_y = global_mouse_y + y * attributs.TILE_SIZE
+                            if 0 <= cell_offset_x < attributs.MapSize.width and 0 <= cell_offset_y < attributs.MapSize.height:
+                                changement = {
+                                    "pos": (cell_offset_x, cell_offset_y),
+                                    "tuile": get_tile_from_map(layers[current_layer], (cell_offset_x, cell_offset_y), 1),
+                                    "layer": current_layer
+                                }
+                                changements.append(changement)
+                                add_tile_to_map(layers[current_layer], tile_name, (cell_offset_x, cell_offset_y), 1)
+                    historique_changements.insert(0, changements)
                     if len(historique_changements) > changements_max:
                         historique_changements.pop()
-                    add_tile_to_map(layers[current_layer], menu.dragging, coords, zoom_factor)
+                else:
+                    tuile = get_tile_from_map(layers[current_layer], coords, zoom_factor)
+                    if tuile["nom"] != menu.dragging:
+                        changement = {
+                            "pos": (coords[0] / zoom_factor, coords[1] / zoom_factor),
+                            "tuile": tuile,
+                            "layer": current_layer
+                        }
+                        historique_changements.insert(0, changement)
+                        if len(historique_changements) > changements_max:
+                            historique_changements.pop()
+                        add_tile_to_map(layers[current_layer], menu.dragging, coords, zoom_factor)
         else:
             dernier_tuile_placee_coords = False
 
@@ -499,19 +517,19 @@ def main():
             using_images = images
             if i != current_layer:
                 using_images = images_faded
-            draw_tile_map(dt, screen, SCREEN_WIDTH, SCREEN_HEIGHT, layer, using_images, animations, zoom_factor, offset_x, offset_y)
+            attributs.draw_tile_map(dt, screen, SCREEN_WIDTH, SCREEN_HEIGHT, layer, using_images, attributs.animations, zoom_factor, offset_x, offset_y)
 
-        for x in range(0, MapSize.width, GAME_SCREEN_WIDTH):
+        for x in range(0, attributs.MapSize.width, attributs.GAME_SCREEN_WIDTH):
             screen_coords = (x * zoom_factor + offset_x, offset_y)
-            screen_coords_end = (x * zoom_factor + offset_x, MapSize.height * zoom_factor + offset_y)
+            screen_coords_end = (x * zoom_factor + offset_x, attributs.MapSize.height * zoom_factor + offset_y)
             pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
 
-        for y in range(0, MapSize.height, GAME_SCREEN_HEIGHT):
+        for y in range(0, attributs.MapSize.height, attributs.GAME_SCREEN_HEIGHT):
             screen_coords = (offset_x, y * zoom_factor + offset_y)
-            screen_coords_end = (MapSize.width * zoom_factor + offset_x, y * zoom_factor + offset_y)
+            screen_coords_end = (attributs.MapSize.width * zoom_factor + offset_x, y * zoom_factor + offset_y)
             pygame.draw.line(screen, (100, 100, 100, 200), screen_coords, screen_coords_end)
 
-        pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, MapSize.width * zoom_factor, MapSize.height * zoom_factor), 10)
+        pygame.draw.rect(screen, (0, 0, 0), (offset_x, offset_y, attributs.MapSize.width * zoom_factor, attributs.MapSize.height * zoom_factor), 10)
 
         if not type(placing_rect) is bool:
             s = pygame.Surface((placing_rect.size[0], placing_rect.size[1]))
@@ -553,21 +571,21 @@ def main():
 
 def add_tile_to_map(TILE_MAP, key, coords, zoom_factor=1, special: dict = {}):
     cell_x, cell_y = get_tile_coords(coords, zoom_factor)
-    if 0 <= cell_x < MapSize.width / TILE_SIZE and 0 <= cell_y < MapSize.height / TILE_SIZE:
+    if 0 <= cell_x < attributs.MapSize.width / attributs.TILE_SIZE and 0 <= cell_y < attributs.MapSize.height / attributs.TILE_SIZE:
         TILE_MAP[cell_y][cell_x] = {"nom": key, "special": special.copy()}
 
 def get_tile_from_map(TILE_MAP, coords, zoom_factor=1):
     cell_x, cell_y = get_tile_coords(coords, zoom_factor)
-    if 0 <= cell_x < MapSize.width / TILE_SIZE and 0 <= cell_y < MapSize.height / TILE_SIZE:
+    if 0 <= cell_x < attributs.MapSize.width / attributs.TILE_SIZE and 0 <= cell_y < attributs.MapSize.height / attributs.TILE_SIZE:
         return TILE_MAP[cell_y][cell_x]
     else:
-        return {"nom": VIDE, "special": {}}
+        return {"nom": attributs.VIDE, "special": {}}
 
 def get_tile_coords(coords, zoom_factor):
     x, y = coords
     x /= zoom_factor
     y /= zoom_factor
-    scaled_tile = int(TILE_SIZE)
+    scaled_tile = int(attributs.TILE_SIZE)
     return (int(x // scaled_tile), int(y // scaled_tile))
 
 def draw_help(screen: pygame.Surface):
@@ -600,7 +618,7 @@ def draw_help(screen: pygame.Surface):
 class Menu:
     def __init__(self, images: dict):
         self.menu_image = pygame.image.load("menu.png")
-        self.menu_image = pygame.transform.scale(self.menu_image, (TILE_SIZE * 4 + 5, self.menu_image.get_height()))
+        self.menu_image = pygame.transform.scale(self.menu_image, (attributs.TILE_SIZE * 4 + 5, self.menu_image.get_height()))
         self.menu_image.set_alpha(200)
         self.edit_image = pygame.image.load("edit.png")
         self.export_image = pygame.image.load("export.png")
@@ -618,7 +636,7 @@ class Menu:
         self.rect = self.menu_image.get_rect()
         self.rect.topleft = (0, self.offset_y)
         self.y_scroll = self.offset_y * 2
-        self.scroll_speed = TILE_SIZE
+        self.scroll_speed = attributs.TILE_SIZE
     
     def draw(self, screen: pygame.Surface):
         screen.blit(self.edit_image, (0, 0))
@@ -634,20 +652,20 @@ class Menu:
                 img: pygame.Surface = self.collisionList[key]
                 pos = (offset_x, self.offset_y + y - img.get_height())
                 if self.offset_y < pos[1] < SCREEN_HEIGHT:
-                    if key == VIDE:
-                        pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(pos, (TILE_SIZE, TILE_SIZE)))
+                    if key == attributs.VIDE:
+                        pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(pos, (attributs.TILE_SIZE, attributs.TILE_SIZE)))
                     rect = screen.blit(img, pos)
                     self.collisionRects.append({"image": img, "rect": rect, "key": key})
                 
-                if offset_x + TILE_SIZE * 2 < self.menu_image.get_width():
-                    offset_x += TILE_SIZE
+                if offset_x + attributs.TILE_SIZE * 2 < self.menu_image.get_width():
+                    offset_x += attributs.TILE_SIZE
                 else:
-                    y += TILE_SIZE
+                    y += attributs.TILE_SIZE
                     offset_x = 0
 
             if self.dragging != -1:
-                if self.dragging == VIDE:
-                    pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(pygame.mouse.get_pos(), (TILE_SIZE, TILE_SIZE)))
+                if self.dragging == attributs.VIDE:
+                    pygame.draw.rect(screen, self.vide_color, pygame.rect.Rect(pygame.mouse.get_pos(), (attributs.TILE_SIZE, attributs.TILE_SIZE)))
                 screen.blit(self.collisionList[self.dragging], pygame.mouse.get_pos())
             
 
@@ -656,26 +674,26 @@ def load_map(file_name):
         with open(file_name, "rb") as f:
             TILE_MAP: list[list[list]] = pickle.load(f)
         for layer in TILE_MAP:
-            if len(layer) < MapSize.height // TILE_SIZE:
-                layer.extend([[{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)] for _ in range(MapSize.height // TILE_SIZE)])
-            elif len(layer) > MapSize.height // TILE_SIZE:
-                layer[:] = layer[:MapSize.height // TILE_SIZE]
+            if len(layer) < attributs.MapSize.height // attributs.TILE_SIZE:
+                layer.extend([[{"nom": attributs.VIDE, "special": {}} for _ in range(attributs.MapSize.width // attributs.TILE_SIZE)] for _ in range(attributs.MapSize.height // attributs.TILE_SIZE)])
+            elif len(layer) > attributs.MapSize.height // attributs.TILE_SIZE:
+                layer[:] = layer[:attributs.MapSize.height // attributs.TILE_SIZE]
             for row in layer:
-                if len(row) < MapSize.width // TILE_SIZE:
-                    row.extend([{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)])
-                elif len(row) > MapSize.width // TILE_SIZE:
-                    row[:] = row[:MapSize.width // TILE_SIZE]
+                if len(row) < attributs.MapSize.width // attributs.TILE_SIZE:
+                    row.extend([{"nom": attributs.VIDE, "special": {}} for _ in range(attributs.MapSize.width // attributs.TILE_SIZE)])
+                elif len(row) > attributs.MapSize.width // attributs.TILE_SIZE:
+                    row[:] = row[:attributs.MapSize.width // attributs.TILE_SIZE]
     else:
-        TILE_MAP = [[[{"nom": VIDE, "special": {}} for _ in range(MapSize.width // TILE_SIZE)] for _ in range(MapSize.height // TILE_SIZE)] for _ in range(NUM_LAYERS)]
+        TILE_MAP = [[[{"nom": attributs.VIDE, "special": {}} for _ in range(attributs.MapSize.width // attributs.TILE_SIZE)] for _ in range(attributs.MapSize.height // attributs.TILE_SIZE)] for _ in range(attributs.NUM_LAYERS)]
     return TILE_MAP
 
 def save_everything(TILE_MAP, images, save_folder_name):
-    save_map_image(TILE_MAP, images)
-    for i, map_surface in enumerate(map_surfaces):
-        path = save_folder_name + "/" + TILE_MAP_IMAGE_FILE_NAME
-        pygame.image.save(map_surface, path[:path.find(".")] + str(i) + path[path.find("."):])
-    save_map(save_folder_name + "/" + TILE_MAP_FILE_NAME, TILE_MAP)
-    save_map(save_folder_name + "/" + TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
+    #save_map_image(TILE_MAP, images)
+    #for i, map_surface in enumerate(map_surfaces):
+    #    path = save_folder_name + "/" + TILE_MAP_IMAGE_FILE_NAME
+    #    pygame.image.save(map_surface, path[:path.find(".")] + str(i) + path[path.find("."):])
+    save_map(save_folder_name + "/" + attributs.TILE_MAP_FILE_NAME, TILE_MAP)
+    save_map(save_folder_name + "/" + attributs.TILE_MAP_RELOADABLE_FILE_NAME, TILE_MAP, False)
 
 def save_map(file_name, TILE_MAP, gamemap=True):
     tile_map = TILE_MAP
@@ -686,21 +704,21 @@ def save_map(file_name, TILE_MAP, gamemap=True):
 
 def appliquer_attributs(tile: str):
     tile_name = tile["nom"]
-    if tile_name in attributs:
-        return {"attributs": attributs[tile_name], "special": tile["special"]}
+    if tile_name in attributs.attributs:
+        return {"attributs": attributs.attributs[tile_name], "special": tile["special"]}
     else:
         sep = tile_name.find("::")
         if sep == -1:
             print("Tuile non trouvée: " + tile_name)
             return {}
         start = tile_name[:sep]
-        if start in tile_maps:
+        if start in attributs.tile_maps:
             end = tile_name[sep + 2:]
             sep = end.find("::")
             atlas_num = end[:sep]
             pos = end[sep + 2:]
             sep = pos.find(";")
-            return {"attributs": tile_maps[start]["attributs"][int(atlas_num)][int(pos[sep + 1:])][int(pos[:sep])], "special": tile["special"]}
+            return {"attributs": attributs.tile_maps[start]["attributs"][int(atlas_num)][int(pos[sep + 1:])][int(pos[:sep])], "special": tile["special"]}
         else:
             print("Tuile non trouvée (trouvé ::): " + tile_name)
             return {}
@@ -711,7 +729,7 @@ def save_map_image(TILE_MAP, images):
         map_surface.fill((255, 255, 255, 0))
         for y, row in enumerate(TILE_MAP[i]):
             for x, tile in enumerate(row):
-                map_surface.blit(images[tile["nom"]], (x * TILE_SIZE, y * TILE_SIZE))
+                map_surface.blit(images[tile["nom"]], (x * attributs.TILE_SIZE, y * attributs.TILE_SIZE))
 
 def dialogue_quitter(TILE_MAP, map_sauvegarde, images, save_folder_name):
     pygame.quit()

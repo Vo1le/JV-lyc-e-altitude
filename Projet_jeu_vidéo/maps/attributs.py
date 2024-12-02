@@ -51,6 +51,8 @@ def main():
     # remplacer frameX et frameY par les coordonnées de la tuile dans la tilemap
     animations["Grass.png::0::0;0"] = {"speed": 0.5, "tiles": [*create_animation("Grass.png::0", [Vector2(i, 0) for i in range(3)])]}
     animations["Water.png::0::2;0"] = {"speed": 1, "tiles": [*create_animation("Water.png::0", [Vector2(i, 0) for i in range(2, 5)])]}
+    
+    groups["Grass.png"] = create_group("Grass.png", 0, 0, 0, 3, 3)
 
 # Paramétres de la map:
 
@@ -96,6 +98,7 @@ HEIGHT_MAP *= GAME_SCREEN_HEIGHT
 attributs = {}
 tile_maps = {}
 animations = {}
+groups = {}
 
 def create_tile_atlas(size_x: int, size_y: int, default: list = [], fill_with: list = [], *args: Vector2 | list[Vector2]):
     tile_atlas = [[default.copy() for _ in range(size_x)] for _ in range(size_y)]
@@ -116,6 +119,10 @@ def create_animation(name: str, *args: Vector2 | list[Vector2]):
         else:
             anim.append(name + "::" + str(int(arg.x)) + ";" + str(int(arg.y)))
     return anim
+
+def create_group(name: str, index: int, start_x: int, start_y: int, width: int, height: int):
+    start = name + "::" + str(index) + "::"
+    return [[start + str(x) + ";" + str(y) for x in range(start_x, width)] for y in range(start_y, height)]
 
 class MapSize:
     width = WIDTH_MAP
