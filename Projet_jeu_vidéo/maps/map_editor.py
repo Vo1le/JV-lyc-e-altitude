@@ -39,7 +39,7 @@ FONT = pygame.font.Font(size=32)
 HELP_BACKGROUND.fill(pygame.Color(200, 200, 100))
 HELP_BACKGROUND.set_alpha(150)    
 
-map_surfaces: list[pygame.Surface] = []
+map_surface: list[pygame.Surface] = []
 
 
 def main():
@@ -225,18 +225,8 @@ def main():
     
     with open(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt", "w") as f:
         f.write(str(attributs.MapSize.getWidth()) + ";" + str(attributs.MapSize.getHeight()))
-            
-    path = TILE_MAP_SAVE_FOLDER_NAME + "/" + attributs.TILE_MAP_IMAGE_FILE_NAME
-    for i in range(attributs.NUM_LAYERS):
-        sep = path.find(".")
-        if os.path.isfile(path[:i] + str(i) + path[i + 1:]):
-            surface = pygame.Surface((attributs.MapSize.width, attributs.MapSize.height), pygame.SRCALPHA)
-            surface.blit(pygame.image.load(path + str(i)), (0, 0), (0, 0, attributs.MapSize.width, attributs.MapSize.height))
-            map_surfaces.append(surface)
-        else:
-            surface = pygame.Surface((attributs.MapSize.width, attributs.MapSize.height), pygame.SRCALPHA)
-            surface.fill((255, 255, 255))
-            map_surfaces.append(surface)
+    
+    map_surface.append(pygame.Surface((attributs.MapSize.width, attributs.MapSize.height), pygame.SRCALPHA))
 
     # Set up des images
     images = attributs.setup_images(attributs.FOLDER_PATH, attributs.TILE_MAP_FOLDER_NAME)
@@ -688,7 +678,9 @@ def load_map(file_name):
     return TILE_MAP
 
 def save_everything(TILE_MAP, images, save_folder_name):
-    #save_map_image(TILE_MAP, images)
+    save_map_image(TILE_MAP, images)
+    path = save_folder_name + "/" + attributs.TILE_MAP_IMAGE_FILE_NAME
+    pygame.image.save(map_surface[0], path)
     #for i, map_surface in enumerate(map_surfaces):
     #    path = save_folder_name + "/" + TILE_MAP_IMAGE_FILE_NAME
     #    pygame.image.save(map_surface, path[:path.find(".")] + str(i) + path[path.find("."):])
@@ -725,11 +717,11 @@ def appliquer_attributs(tile: str):
 
 
 def save_map_image(TILE_MAP, images):
-    for i, map_surface in enumerate(map_surfaces):
-        map_surface.fill((255, 255, 255, 0))
-        for y, row in enumerate(TILE_MAP[i]):
+    map_surface[0].fill((255, 255, 255, 0))
+    for layer in TILE_MAP:
+        for y, row in enumerate(layer):
             for x, tile in enumerate(row):
-                map_surface.blit(images[tile["nom"]], (x * attributs.TILE_SIZE, y * attributs.TILE_SIZE))
+                map_surface[0].blit(images[tile["nom"]], (x * attributs.TILE_SIZE, y * attributs.TILE_SIZE))
 
 def dialogue_quitter(TILE_MAP, map_sauvegarde, images, save_folder_name):
     pygame.quit()
