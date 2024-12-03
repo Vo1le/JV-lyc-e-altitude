@@ -2,9 +2,11 @@ import pygame as py
 import math
 import pickle
 import os
+from copy import deepcopy
 
 from maps.attributs import *
 from Joueur import get_joueur_position_cell
+from PNJs.dialogues import dialogues
 
 
 class Wall(py.sprite.Sprite):
@@ -22,6 +24,13 @@ class Porte(py.sprite.Sprite):
         self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.destination = destination
         self.position = position
+
+class ObjetDialogue(py.sprite.Sprite):
+    def __init__(self, x, y, dialogue: dict) -> None:
+        super().__init__()
+        self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        self.dialogue = deepcopy(dialogues[dialogue])
+        self.radius = TILE_SIZE * 2
 
 class Tile(py.sprite.Sprite):
     def __init__(self, x, y, image, animated="", time=0.0, *groups):
@@ -78,6 +87,7 @@ class Map(py.sprite.Sprite):
     def apply_attributs(self):
         self.collisions = extendedGroup()
         self.portes = extendedGroup()
+        self.objetsDialogue = extendedGroup()
         for layer in self.tile_map_attributs:
             for y, row in enumerate(layer):
                 for x, tile in enumerate(row):
@@ -94,6 +104,9 @@ class Map(py.sprite.Sprite):
                             pos = (int(tile_special["position"][:sep]), int(tile_special["position"][sep + 1:]))
                         porte = Porte(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["destination"], pos)
                         porte.add(self.portes)
+                    if "dialogue" in tile_special:
+                        obj = ObjetDialogue(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["dialogue"])
+                        obj.add(self.objetsDialogue)
     
     def draw(self, dt, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
         layer_groups = self.tile_groups[layer]

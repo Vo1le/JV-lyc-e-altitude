@@ -7,7 +7,8 @@ inputs = {
     "droite": [K_RIGHT, K_d],
     "quit": [K_ESCAPE],
     "zoom": [K_x],
-    "dezoom": [K_c]
+    "dezoom": [K_c],
+    "interagir": [K_RETURN]
 }
 
 def verifierInput(touchesAppuyes, action):
@@ -19,5 +20,11 @@ def verifierInput(touchesAppuyes, action):
 def verifierInputKey(key, action):
     for touche in inputs[action]:
         if key == touche:
+            return True
+    return False
+
+def verifierInputList(l: list, action):
+    for touche in inputs[action]:
+        if touche in l:
             return True
     return False

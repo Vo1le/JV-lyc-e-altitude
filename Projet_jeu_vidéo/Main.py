@@ -45,9 +45,10 @@ def main():
     while continuer: 
 
         # // Les évenement (input joueur) sont ici //
-
+        keys_pressed_once = []
         for event in py.event.get():
             if event.type == py.KEYDOWN:
+                keys_pressed_once.append(event.key)
                 if verifierInputKey(event.key, "quit"):
                     py.quit()
                     sys.exit()
@@ -65,7 +66,7 @@ def main():
         if not transitionEcran.playing and not transitionZone.playing:
             joueurCellStart = get_joueur_position_cell(joueur.rect.center)
             positionJoueurStart = joueur.rect.center
-            zoom, new_location = joueur.update(dt, mapjeu, zoom)
+            zoom, new_location = joueur.update(dt, keys_pressed_once, mapjeu, zoom)
             if new_location != -1:
                 location = new_location
                 transitionZone.play()

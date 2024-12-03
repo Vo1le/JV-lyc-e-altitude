@@ -1,5 +1,5 @@
 import pygame as py
-from inputs import verifierInput
+from inputs import verifierInput, verifierInputList
 import math
 from maps.attributs import GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT
 
@@ -25,7 +25,15 @@ class Joueur(py.sprite.Sprite):
         self.animation = "idle"
         self.frameCourante = 0.0
 
-    def update(self, dt, mapjeu, zoom: float):
+        self.talking = False
+        self.talkingTo = None
+        self.talkingTextIndex = 0.0
+        self.talkingSpeed = 7.0
+        self.talkRange = 200.0
+        self.talkingProgression = 0
+        self.talkingFont = py.font.Font(size=32)
+
+    def update(self, dt, keys_pressed_once, mapjeu, zoom: float):
         touchesAppuyes = py.key.get_pressed()
         input = py.math.Vector2(verifierInput(touchesAppuyes, "droite") - verifierInput(touchesAppuyes, "gauche"), verifierInput(touchesAppuyes, "bas") - verifierInput(touchesAppuyes, "haut"))
         if input.y:
@@ -51,6 +59,29 @@ class Joueur(py.sprite.Sprite):
         location = self.avance(dt, mapjeu)
 
         self.updateAnimations(dt, input)
+
+        if verifierInputList(keys_pressed_once, "interagir"):
+            if not self.talking:
+                self.talkingTo = py.sprite.spritecollideany(self, mapjeu.objetsDialogue, py.sprite.collide_circle)
+                if not self.talkingTo is None:
+                    self.talking = True
+            else:
+                if self.talkingTextIndex > len(self.talkingTo.dialogue["texte"][self.talkingTo.dialogue["index"]][self.talkingProgression]):
+                    self.talkingProgression += 1
+                    self.talkingTextIndex = 0.0
+                    if self.talkingProgression >= len(self.talkingTo.dialogue["texte"][self.talkingTo.dialogue["index"]]):
+                        self.talkingProgression = 0
+                        self.talking = False
+                        self.talkingTo.dialogue["index"] += 1
+                        if self.talkingTo.dialogue["index"] >= len(self.talkingTo.dialogue["texte"]):
+                            self.talkingTo.dialogue["index"] = len(self.talkingTo.dialogue["texte"]) - 1
+                else:
+                    self.talkingTextIndex = len(self.talkingTo.dialogue["texte"][self.talkingTo.dialogue["index"]][self.talkingProgression])
+        if self.talking:
+            self.talkingTextIndex += dt * self.talkingSpeed
+            if py.Vector2(self.rect.center).distance_to(py.Vector2(self.talkingTo.rect.center)) > self.talkRange:
+                self.talking = False
+                self.talkingTextIndex = 0.0
 
         if not input:
             return zoom, location
@@ -109,8 +140,10 @@ class Joueur(py.sprite.Sprite):
         else:
             pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH / 2), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT / 2))
             surface.blit(py.transform.scale(self.image, (math.ceil(self.rect.width * zoom), math.ceil(self.rect.height * zoom))), pos)
-            
-    
+        if self.talking:
+            textImg = self.talkingFont.render(self.talkingTo.dialogue["texte"][self.talkingTo.dialogue["index"]][self.talkingProgression][:math.floor(self.talkingTextIndex)], True, (0, 0, 0))
+            surface.blit(textImg, (10, 10))
+
 def clamp(n, p_min, p_max):
     if p_max > p_min:
         return min(max(n, p_min), p_max)
