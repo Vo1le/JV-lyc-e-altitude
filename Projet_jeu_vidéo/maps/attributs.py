@@ -33,9 +33,10 @@ def main():
     # tuile_a_remplir: la position d'une tuile qui va etre remplie avec remplir_avec. ex: Vector2(x, y) où x et y sont les coordonées de la tuile (en nombre de tuiles, commencant a 0)
     # vous pouvez mettre autant de tuile_a_remplir que vous voulez, mais n'oubliez pas les virgules entre chaque!
 
-    tile_maps["Grass.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(11, 7, [])]}
-    tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(4, 4, [], [MUR], [Vector2(3, i) for i in range(4)], [Vector2(i, 2) for i in range(3)], [Vector2(i, 3) for i in range(3)])]}
-    tile_maps["Water.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(5, 3, [MUR])]}
+    tile_maps["Grass.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 11, 7)]}
+    tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 4, 4, [], [MUR], [Vector2(3, i) for i in range(4)], [Vector2(i, 2) for i in range(3)], [Vector2(i, 3) for i in range(3)])]}
+    tile_maps["Water.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 5, 3, [MUR])]}
+    tile_maps["chicken_walk.png"] = {"tile_size": 32, "attributs": [create_tile_atlas(0, 1, 1, 1)]}
 
     # animations
     # pour rajouter une tuile animée:
@@ -103,7 +104,7 @@ tile_maps = {}
 animations = {}
 groups = {}
 
-def create_tile_atlas(size_x: int, size_y: int, default: list = [], fill_with: list = [], *args: Vector2 | list[Vector2]):
+def create_tile_atlas(left: int, top: int, size_x: int, size_y: int, default: list = [], fill_with: list = [], *args: Vector2 | list[Vector2]):
     tile_atlas = [[default.copy() for _ in range(size_x)] for _ in range(size_y)]
     for arg in args:
         if type(arg) is list:

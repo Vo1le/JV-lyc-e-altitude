@@ -26,14 +26,22 @@ class Porte(py.sprite.Sprite):
         self.position = position
 
 class ObjetDialogue(py.sprite.Sprite):
-    def __init__(self, x, y, dialogue: dict, name="", face="") -> None:
+    def __init__(self, x, y, dialogue: dict, name="", face=""):
         super().__init__()
         self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.name = name or dialogue
         self.face = face or "vide.png"
         self.face = pygame.transform.scale(pygame.image.load("PNJs/faces/" + self.face), (WIDTH_FACE, HEIGHT_FACE))
         self.dialogue = deepcopy(dialogues[dialogue])
+        self.dialogueKey = dialogue
         self.radius = TILE_SIZE * 2
+
+class Item(py.sprite.Sprite):
+    def __init__(self, x, y, name, layerIdx):
+        super().__init__()
+        self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        self.name = name
+        self.layerIdx = layerIdx
 
 class Tile(py.sprite.Sprite):
     def __init__(self, x, y, image, animated="", time=0.0, *groups):
@@ -91,7 +99,8 @@ class Map(py.sprite.Sprite):
         self.collisions = extendedGroup()
         self.portes = extendedGroup()
         self.objetsDialogue = extendedGroup()
-        for layer in self.tile_map_attributs:
+        self.items = extendedGroup()
+        for layerIdx, layer in enumerate(self.tile_map_attributs):
             for y, row in enumerate(layer):
                 for x, tile in enumerate(row):
                     tile_attributs = tile["attributs"]
@@ -116,6 +125,9 @@ class Map(py.sprite.Sprite):
                             face = tile_special["face"]
                         obj = ObjetDialogue(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["dialogue"], name, face)
                         obj.add(self.objetsDialogue)
+                    if "item" in tile_special:
+                        item = Item(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["item"], layerIdx)
+                        item.add(self.items)
     
     def draw(self, dt, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
         layer_groups = self.tile_groups[layer]
@@ -136,6 +148,13 @@ class Map(py.sprite.Sprite):
                     group_pos = (math.floor(x / GAME_SCREEN_WIDTH), math.floor(y / GAME_SCREEN_HEIGHT))
                     layer_groups[group_pos[1]][group_pos[0]].draw(surface, positionJoueurGlobal, zoom)
                     layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)
+    
+    def removeTile(self, layer, coords):
+        group_pos = (math.floor(coords[0] / GAME_SCREEN_WIDTH), math.floor(coords[1] / GAME_SCREEN_HEIGHT))
+        for sprite in self.tile_groups[layer][group_pos[1]][group_pos[0]].sprites():
+            if sprite.rect.topleft == coords:
+                sprite.kill()
+                break
 
 
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
