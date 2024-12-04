@@ -26,9 +26,12 @@ class Porte(py.sprite.Sprite):
         self.position = position
 
 class ObjetDialogue(py.sprite.Sprite):
-    def __init__(self, x, y, dialogue: dict) -> None:
+    def __init__(self, x, y, dialogue: dict, name="", face="") -> None:
         super().__init__()
         self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
+        self.name = name or dialogue
+        self.face = face or "vide.png"
+        self.face = pygame.transform.scale(pygame.image.load("PNJs/faces/" + self.face), (WIDTH_FACE, HEIGHT_FACE))
         self.dialogue = deepcopy(dialogues[dialogue])
         self.radius = TILE_SIZE * 2
 
@@ -105,7 +108,13 @@ class Map(py.sprite.Sprite):
                         porte = Porte(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["destination"], pos)
                         porte.add(self.portes)
                     if "dialogue" in tile_special:
-                        obj = ObjetDialogue(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["dialogue"])
+                        name = ""
+                        if "nom" in tile_special:
+                            name = tile_special["nom"]
+                        face = ""
+                        if "face" in tile_special:
+                            face = tile_special["face"]
+                        obj = ObjetDialogue(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["dialogue"], name, face)
                         obj.add(self.objetsDialogue)
     
     def draw(self, dt, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):

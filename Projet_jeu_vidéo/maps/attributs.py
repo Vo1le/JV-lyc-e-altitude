@@ -88,6 +88,9 @@ GAME_SCREEN_HEIGHT = 14
 WIDTH_MAP = 3
 HEIGHT_MAP = 2
 
+WIDTH_FACE = 150.0
+HEIGHT_FACE = 150.0
+
 # !!!!! NE PAS MODIFIER LE RESTE !!!!!
 # -----------------------------------------------------------------------------------------------------------------------
 GAME_SCREEN_WIDTH *= TILE_SIZE

@@ -90,6 +90,7 @@ def main():
         joueur.draw(ecran, zoom, joueurCenter)
         for layer in range(NUM_LAYERS - NUM_LAYERS_ABOVE_PLAYER, NUM_LAYERS):
             mapjeu.draw(dt, ecran, joueurCenter, zoom, layer)
+        joueur.drawHUD(ecran)
 
         transitionEcran.draw(ecran)
         transitionZone.draw(ecran)
