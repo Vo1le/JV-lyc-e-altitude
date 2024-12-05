@@ -37,11 +37,12 @@ class ObjetDialogue(py.sprite.Sprite):
         self.radius = TILE_SIZE * 2
 
 class Item(py.sprite.Sprite):
-    def __init__(self, x, y, name, layerIdx):
+    def __init__(self, x, y, name, layerIdx, mapName):
         super().__init__()
         self.rect = py.Rect(x, y, TILE_SIZE, TILE_SIZE)
         self.name = name
         self.layerIdx = layerIdx
+        self.mapName = mapName
 
 class Tile(py.sprite.Sprite):
     def __init__(self, x, y, image, animated="", time=0.0, *groups):
@@ -64,6 +65,7 @@ class Map(py.sprite.Sprite):
         super().__init__()
         self.images = setup_images("maps/" + FOLDER_PATH, "maps/" + TILE_MAP_FOLDER_NAME)
         self.rect = py.Rect(x, y, MapSize.width, MapSize.height)
+        self.mapName = path
         self.tile_map_attributs = self.load_map("maps/" + path + "/" + TILE_MAP_FILE_NAME)
         self.tile_map = self.load_map("maps/" + path + "/" + TILE_MAP_RELOADABLE_FILE_NAME)
         self.create_groups()
@@ -126,7 +128,7 @@ class Map(py.sprite.Sprite):
                         obj = ObjetDialogue(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["dialogue"], name, face)
                         obj.add(self.objetsDialogue)
                     if "item" in tile_special:
-                        item = Item(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["item"], layerIdx)
+                        item = Item(x * TILE_SIZE + self.rect.left, y * TILE_SIZE + self.rect.top, tile_special["item"], layerIdx, self.mapName)
                         item.add(self.items)
     
     def draw(self, dt, surface: py.Surface, positionJoueurGlobal, p_zoom, layer):
@@ -155,7 +157,13 @@ class Map(py.sprite.Sprite):
             if sprite.rect.topleft == coords:
                 sprite.kill()
                 break
-
+    
+    def removeItems(self, items: dict):
+        for k in items.keys():
+            for item in items[k]:
+                if item.mapName == self.mapName:
+                    self.removeTile(item.layerIdx, item.rect.topleft)
+                    self.items.removeSprite(item)
 
 # classe qui hérite de py.sprite.Group qui est la classe qui permet l'affichage et l'update d'un groupe de sprites
 class extendedGroup(py.sprite.Group):
@@ -185,6 +193,12 @@ class extendedGroup(py.sprite.Group):
                 pos = (math.floor((topleft[0] - positionJoueur[0]) * zoom + GAME_SCREEN_WIDTH / 2 - GAME_SCREEN_WIDTH / 2 * zoom), math.floor((topleft[1] - positionJoueur[1]) * zoom + GAME_SCREEN_HEIGHT / 2 - GAME_SCREEN_HEIGHT / 2 * zoom))
                 self.spritedict[spr] = surface_blit(py.transform.scale(spr.image, (math.ceil(spr.rect.width * zoom), math.ceil(spr.rect.height * zoom))), pos)
         self.lostsprites = []
+    
+    def removeSprite(self, spr):
+        for sprite in self.sprites():
+            if sprite.rect == spr.rect:
+                self.remove(sprite)
+                return
     
     def __str__(self) -> str:
         s = ""

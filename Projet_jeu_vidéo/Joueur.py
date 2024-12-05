@@ -146,13 +146,15 @@ class Joueur(py.sprite.Sprite):
                         if "evenements" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] in self.talkingTo.dialogue["evenements"]:
                             attrNames = self.talkingTo.dialogue["evenements"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]]
                             attr = getattr(self.evenements, attrNames["type"])[attrNames["nom"]]
-                            if attr["progress"] < attr["end"]:
+                            if attr["progress"] < attr["end"] and not ("completed" in attrNames and attrNames["completed"]):
                                 if attrNames["max"] == -1:
                                     if attrNames["min"] <= attr["progress"]:
                                         attr["progress"] += 1
+                                        attrNames["completed"] = True
                                 else:
                                     if attrNames["min"] <= attr["progress"] < attrNames["max"]:
                                         attr["progress"] += 1
+                                        attrNames["completed"] = True
                         
                         #print(self.evenements.dialoguesProgression[self.talkingTo.dialogueKey], self.evenements.quests["parlerPotato"]["progress"])
                         if "restrictions" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] + 1 in self.talkingTo.dialogue["restrictions"]:
@@ -178,15 +180,18 @@ class Joueur(py.sprite.Sprite):
             if py.Vector2(self.rect.center).distance_to(py.Vector2(self.talkingTo.rect.center)) > self.talkRange:
                 self.talking = False
                 self.talkingTextIndex = 0.0
+                self.talkingProgression = 0
     
     def getItem(self, item, mapjeu):
         if item.name in self.evenements.questItems:
             quest = self.evenements.questItems[item.name]
             if self.evenements.quests[quest]["progress"] < self.evenements.quests[quest]["end"]:
                 self.evenements.quests[quest]["progress"] += 1
-                mapjeu.removeTile(item.layerIdx, item.rect.topleft)
+        if item.name in self.items:
+            self.items[item.name].append(item)
         else:
-            self.items[item.name] = item
+            self.items[item.name] = [item]
+        mapjeu.removeTile(item.layerIdx, item.rect.topleft)
         mapjeu.items.remove(item)
     
     def draw(self, surface: py.Surface, p_zoom, positionOverride=-1):
