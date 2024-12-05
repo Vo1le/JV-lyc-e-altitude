@@ -29,7 +29,7 @@ def main():
     # // Espace dédié au diverses variables liée au fonctionnement du code //
     continuer = True
 
-    location = {"destination": "monde", "position": (25, 50)}
+    location = {"destination": "overworld", "position": (100, 125)}
     mapjeu = Map(0, 0, location["destination"])
 
     # // ajout des sprites dans le jeu //

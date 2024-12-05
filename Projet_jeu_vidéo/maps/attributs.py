@@ -1,4 +1,3 @@
-from pygame.math import Vector2
 import pygame, os
 from math import floor
 
@@ -34,9 +33,10 @@ def main():
     # vous pouvez mettre autant de tuile_a_remplir que vous voulez, mais n'oubliez pas les virgules entre chaque!
 
     tile_maps["Grass.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 11, 7)]}
-    tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 4, 4, [], [MUR], [Vector2(3, i) for i in range(4)], [Vector2(i, 2) for i in range(3)], [Vector2(i, 3) for i in range(3)])]}
+    tile_maps["Hills.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 4, 4, [], [MUR], [(3, i) for i in range(4)], [(i, 2) for i in range(3)], [(i, 3) for i in range(3)])]}
     tile_maps["Water.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 5, 3, [MUR])]}
     tile_maps["chicken_walk.png"] = {"tile_size": 32, "attributs": [create_tile_atlas(0, 1, 1, 1)]}
+    tile_maps["Cave.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 5, 3, [MUR], [], (1, 1), (1, 2))]}
 
     # animations
     # pour rajouter une tuile animée:
@@ -50,10 +50,11 @@ def main():
     # a la place de nomDuFichierImagePourFrame1
     # puis remplacer nomDuFichierImagePourFrames par le nom du fichier image dans tilemaps
     # remplacer frameX et frameY par les coordonnées de la tuile dans la tilemap
-    animations["Grass.png::0::0;0"] = {"speed": 0.5, "tiles": [*create_animation("Grass.png::0", [Vector2(i, 0) for i in range(3)])]}
-    animations["Water.png::0::2;0"] = {"speed": 1, "tiles": [*create_animation("Water.png::0", [Vector2(i, 0) for i in range(2, 5)])]}
+    #animations["Grass.png::0::0;0"] = {"speed": 0.5, "tiles": [*create_animation("Grass.png::0", [(i, 0) for i in range(3)])]}
+    animations["Water.png::0::2;0"] = {"speed": 1, "tiles": [*create_animation("Water.png::0", [(i, 0) for i in range(2, 5)])]}
     
     groups["Grass.png"] = create_group("Grass.png", 0, 0, 0, 3, 3)
+    groups["Cave.png"] = create_group("Cave.png", 0, 0, 0, 3, 3)
 
 # Paramétres de la map:
 
@@ -104,24 +105,24 @@ tile_maps = {}
 animations = {}
 groups = {}
 
-def create_tile_atlas(left: int, top: int, size_x: int, size_y: int, default: list = [], fill_with: list = [], *args: Vector2 | list[Vector2]):
+def create_tile_atlas(left: int, top: int, size_x: int, size_y: int, default: list = [], fill_with: list = [], *args: tuple | list[tuple]):
     tile_atlas = [[default.copy() for _ in range(size_x)] for _ in range(size_y)]
     for arg in args:
         if type(arg) is list:
             for v in arg:
-                tile_atlas[int(v.y)][int(v.x)] = fill_with.copy()
+                tile_atlas[int(v[1])][int(v[0])] = fill_with.copy()
         else:
-            tile_atlas[int(arg.y)][int(arg.x)] = fill_with.copy()
+            tile_atlas[int(arg[1])][int(arg[0])] = fill_with.copy()
     return tile_atlas
 
-def create_animation(name: str, *args: Vector2 | list[Vector2]):
+def create_animation(name: str, *args: tuple | list[tuple]):
     anim = []
     for arg in args:
         if type(arg) is list:
             for v in arg:
-                anim.append(name + "::" + str(int(v.x)) + ";" + str(int(v.y)))
+                anim.append(name + "::" + str(int(v[0])) + ";" + str(int(v[1])))
         else:
-            anim.append(name + "::" + str(int(arg.x)) + ";" + str(int(arg.y)))
+            anim.append(name + "::" + str(int(arg[0])) + ";" + str(int(arg[1])))
     return anim
 
 def create_group(name: str, index: int, start_x: int, start_y: int, width: int, height: int):

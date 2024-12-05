@@ -122,29 +122,29 @@ class Joueur(py.sprite.Sprite):
                 if not self.talkingTo is None:
                     self.talking = True
                     if not self.talkingTo.dialogueKey in self.evenements.dialoguesProgression:
-                        self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] = 0
-                    if self.talkingTo.dialogue["skipLastLine"] and "restrictions" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] + 1 in self.talkingTo.dialogue["restrictions"]:
-                        attrNames = self.talkingTo.dialogue["restrictions"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] + 1]
+                        self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] = {"index": 0, "skipLastLine": False}
+                    if self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["skipLastLine"] and "restrictions" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] + 1 in self.talkingTo.dialogue["restrictions"]:
+                        attrNames = self.talkingTo.dialogue["restrictions"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] + 1]
                         attr = getattr(self.evenements, attrNames["type"])[attrNames["nom"]]
                         if attrNames["max"] == -1:
                             if attrNames["min"] <= attr["progress"]:
-                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] += 1
-                                self.talkingTo.dialogue["skipLastLine"] = False
+                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] += 1
+                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["skipLastLine"] = False
                         else:
                             if attrNames["min"] <= attr["progress"] < attrNames["max"]:
-                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] += 1
-                                self.talkingTo.dialogue["skipLastLine"] = False
+                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] += 1
+                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["skipLastLine"] = False
             
             else:
-                if self.talkingTextIndex > len(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]][self.talkingProgression]):
+                if self.talkingTextIndex > len(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"]][self.talkingProgression]):
                     self.talkingProgression += 1
                     self.talkingTextIndex = 0.0
-                    if self.talkingProgression >= len(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]]):
+                    if self.talkingProgression >= len(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"]]):
                         self.talkingProgression = 0
                         self.talking = False
 
-                        if "evenements" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] in self.talkingTo.dialogue["evenements"]:
-                            attrNames = self.talkingTo.dialogue["evenements"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]]
+                        if "evenements" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] in self.talkingTo.dialogue["evenements"]:
+                            attrNames = self.talkingTo.dialogue["evenements"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"]]
                             attr = getattr(self.evenements, attrNames["type"])[attrNames["nom"]]
                             if attr["progress"] < attr["end"] and not ("completed" in attrNames and attrNames["completed"]):
                                 if attrNames["max"] == -1:
@@ -156,24 +156,24 @@ class Joueur(py.sprite.Sprite):
                                         attr["progress"] += 1
                                         attrNames["completed"] = True
                         
-                        #print(self.evenements.dialoguesProgression[self.talkingTo.dialogueKey], self.evenements.quests["parlerPotato"]["progress"])
-                        if "restrictions" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] + 1 in self.talkingTo.dialogue["restrictions"]:
-                            attrNames = self.talkingTo.dialogue["restrictions"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] + 1]
+                        #print(self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"], self.evenements.quests["parlerPotato"]["progress"])
+                        if "restrictions" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] + 1 in self.talkingTo.dialogue["restrictions"]:
+                            attrNames = self.talkingTo.dialogue["restrictions"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] + 1]
                             attr = getattr(self.evenements, attrNames["type"])[attrNames["nom"]]
                             if attrNames["min"] <= attr["progress"]:
                                 if attrNames["max"] != -1:
                                     if attr["progress"] < attrNames["max"]:
-                                        self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] += 1
+                                        self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] += 1
                                 else:
-                                    self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] += 1
+                                    self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] += 1
                             else:
-                                self.talkingTo.dialogue["skipLastLine"] = True
+                                self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["skipLastLine"] = True
                         else:
-                            self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] += 1
-                        if self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] >= len(self.talkingTo.dialogue["texte"]):
-                            self.evenements.dialoguesProgression[self.talkingTo.dialogueKey] = len(self.talkingTo.dialogue["texte"]) - 1
+                            self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] += 1
+                        if self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] >= len(self.talkingTo.dialogue["texte"]):
+                            self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] = len(self.talkingTo.dialogue["texte"]) - 1
                 else:
-                    self.talkingTextIndex = len(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]][self.talkingProgression])
+                    self.talkingTextIndex = len(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"]][self.talkingProgression])
         
         if self.talking:
             self.talkingTextIndex += dt * self.talkingSpeed
@@ -212,7 +212,7 @@ class Joueur(py.sprite.Sprite):
         if self.talking:
             py.draw.rect(surface, (100, 100, 100), (WIDTH_FACE, GAME_SCREEN_HEIGHT - HEIGHT_FACE - 50.0, GAME_SCREEN_WIDTH / 2, HEIGHT_FACE + 40.0))
             surface.blit(self.talkingTo.face, (0, GAME_SCREEN_HEIGHT - HEIGHT_FACE - 25.0))
-            textImg = self.talkingFont.render(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]][self.talkingProgression][:math.floor(self.talkingTextIndex)], True, (0, 0, 0))
+            textImg = self.talkingFont.render(self.talkingTo.dialogue["texte"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"]][self.talkingProgression][:math.floor(self.talkingTextIndex)], True, (0, 0, 0))
             surface.blit(textImg, (WIDTH_FACE + 25, GAME_SCREEN_HEIGHT - HEIGHT_FACE))
             nameImg = self.talkingFont.render(self.talkingTo.name, True, (0, 255, 255))
             surface.blit(nameImg, (WIDTH_FACE + 5, GAME_SCREEN_HEIGHT - HEIGHT_FACE - 45.0))
