@@ -37,6 +37,7 @@ def main():
     tile_maps["Water.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 5, 3, [MUR])]}
     tile_maps["chicken_walk.png"] = {"tile_size": 32, "attributs": [create_tile_atlas(0, 1, 1, 1)]}
     tile_maps["Cave.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 5, 3, [MUR], [], (1, 1), (1, 2))]}
+    tile_maps["Coin2.png"] = {"tile_size": 10, "attributs": [create_tile_atlas(0, 0, 4, 1)]}
 
     # animations
     # pour rajouter une tuile animée:
@@ -52,6 +53,7 @@ def main():
     # remplacer frameX et frameY par les coordonnées de la tuile dans la tilemap
     #animations["Grass.png::0::0;0"] = {"speed": 0.5, "tiles": [*create_animation("Grass.png::0", [(i, 0) for i in range(3)])]}
     animations["Water.png::0::2;0"] = {"speed": 1, "tiles": [*create_animation("Water.png::0", [(i, 0) for i in range(2, 5)])]}
+    animations["Coin2.png::0::0;0"] = {"speed": 1, "tiles": [*create_animation("Coin2.png::0", [(i, 0) for i in range(0, 4)])]}
     
     groups["Grass.png"] = create_group("Grass.png", 0, 0, 0, 3, 3)
     groups["Cave.png"] = create_group("Cave.png", 0, 0, 0, 3, 3)

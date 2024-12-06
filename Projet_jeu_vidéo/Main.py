@@ -79,7 +79,7 @@ def main():
         if fini and transitionZone.playing:
             mapjeu = Map(0, 0, location["destination"])
             joueur.rect.center = location["position"]
-            mapjeu.removeItems(joueur.items)
+            mapjeu.removeItems(joueur.collectedItems)
         joueurCenter = joueur.rect.center
         if (transitionEcran.playing and not transitionEcran.reverse) or (transitionZone.playing and not transitionZone.reverse):
             joueurCenter = dernierePositionJoueur

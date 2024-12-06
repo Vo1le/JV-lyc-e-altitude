@@ -152,12 +152,17 @@ class Map(py.sprite.Sprite):
                     layer_groups[group_pos[1]][group_pos[0]].update(dt, self.images)
     
     def removeTile(self, layer, coords):
-        group_pos = (math.floor(coords[0] / GAME_SCREEN_WIDTH), math.floor(coords[1] / GAME_SCREEN_HEIGHT))
+        group_pos = (py.math.clamp(math.floor(coords[0] / GAME_SCREEN_WIDTH), 0, MapSize.getWidth()), py.math.clamp(math.floor(coords[1] / GAME_SCREEN_HEIGHT), 0,  MapSize.getHeight()))
         for sprite in self.tile_groups[layer][group_pos[1]][group_pos[0]].sprites():
             if sprite.rect.topleft == coords:
                 sprite.kill()
                 break
     
+    def addItem(self, layerIdx, coords, name, imageName, animated=""):
+        self.items.add(Item(coords[0], coords[1], name, layerIdx, self.mapName))
+        group_pos = (py.math.clamp(math.floor(coords[0] / GAME_SCREEN_WIDTH), 0, MapSize.getWidth()), py.math.clamp(math.floor(coords[1] / GAME_SCREEN_HEIGHT), 0,  MapSize.getHeight()))
+        self.tile_groups[layerIdx][group_pos[1]][group_pos[0]].add(Tile(coords[0], coords[1], self.images[imageName], animated))
+
     def removeItems(self, items: dict):
         for k in items.keys():
             for item in items[k]:

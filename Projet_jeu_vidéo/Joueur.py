@@ -34,10 +34,16 @@ class Joueur(py.sprite.Sprite):
         self.talkRange = 200.0
         self.talkingProgression = 0
         self.talkingFont = py.font.Font(size=32)
+        self.talkPossible = False
 
         self.evenements = Evenements()
 
         self.items = {}
+        self.collectedItems = {}
+        self.inInventory = False
+        self.inventorySurface = py.Surface((GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT), py.SRCALPHA)
+        self.inventorySurface.fill((0, 0, 0))
+        self.inventorySurface.set_alpha(100)
 
     def update(self, dt, keys_pressed_once, mapjeu, zoom: float):
         touchesAppuyes = py.key.get_pressed()
@@ -67,6 +73,9 @@ class Joueur(py.sprite.Sprite):
         self.updateAnimations(dt, input)
 
         self.updateTalk(dt, keys_pressed_once, mapjeu)
+
+        if verifierInputList(keys_pressed_once, "inventaire"):
+            self.inInventory = not self.inInventory
 
         if not input:
             return zoom, location
@@ -146,14 +155,14 @@ class Joueur(py.sprite.Sprite):
                         if "evenements" in self.talkingTo.dialogue and self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"] in self.talkingTo.dialogue["evenements"]:
                             attrNames = self.talkingTo.dialogue["evenements"][self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"]]
                             attr = getattr(self.evenements, attrNames["type"])[attrNames["nom"]]
-                            if attr["progress"] < attr["end"] and not ("completed" in attrNames and attrNames["completed"]):
+                            if not ("completed" in attrNames and attrNames["completed"]):
                                 if attrNames["max"] == -1:
                                     if attrNames["min"] <= attr["progress"]:
-                                        attr["progress"] += 1
+                                        self.evenements.progressQuest(attrNames["type"], attrNames["nom"], mapjeu, self)
                                         attrNames["completed"] = True
                                 else:
                                     if attrNames["min"] <= attr["progress"] < attrNames["max"]:
-                                        attr["progress"] += 1
+                                        self.evenements.progressQuest(attrNames["type"], attrNames["nom"], mapjeu, self)
                                         attrNames["completed"] = True
                         
                         #print(self.evenements.dialoguesProgression[self.talkingTo.dialogueKey]["index"], self.evenements.quests["parlerPotato"]["progress"])
@@ -181,16 +190,19 @@ class Joueur(py.sprite.Sprite):
                 self.talking = False
                 self.talkingTextIndex = 0.0
                 self.talkingProgression = 0
+        
+        self.talkPossible = not self.talking and not py.sprite.spritecollideany(self, mapjeu.objetsDialogue, py.sprite.collide_circle) is None
     
     def getItem(self, item, mapjeu):
         if item.name in self.evenements.questItems:
             quest = self.evenements.questItems[item.name]
-            if self.evenements.quests[quest]["progress"] < self.evenements.quests[quest]["end"]:
-                self.evenements.quests[quest]["progress"] += 1
+            self.evenements.progressQuest("quests", quest, mapjeu, self)
         if item.name in self.items:
             self.items[item.name].append(item)
+            self.collectedItems[item.name].append(item)
         else:
             self.items[item.name] = [item]
+            self.collectedItems[item.name] = [item]
         mapjeu.removeTile(item.layerIdx, item.rect.topleft)
         mapjeu.items.remove(item)
     
@@ -216,6 +228,16 @@ class Joueur(py.sprite.Sprite):
             surface.blit(textImg, (WIDTH_FACE + 25, GAME_SCREEN_HEIGHT - HEIGHT_FACE))
             nameImg = self.talkingFont.render(self.talkingTo.name, True, (0, 255, 255))
             surface.blit(nameImg, (WIDTH_FACE + 5, GAME_SCREEN_HEIGHT - HEIGHT_FACE - 45.0))
+        
+        if self.talkPossible:
+            textImg = self.talkingFont.render("Pour parler: Entrer", True, (255, 0, 100))
+            surface.blit(textImg, (GAME_SCREEN_WIDTH - 300, 100))
+
+        if self.inInventory:
+            surface.blit(self.inventorySurface, (0, 0))
+            for i, item in enumerate(self.items):
+                textImg = self.talkingFont.render(item + ": " + str(len(self.items[item])), True, (255, 100, 100))
+                surface.blit(textImg, (25, (i + 1) * 32))
 
 def clamp(n, p_min, p_max):
     if p_max > p_min:
