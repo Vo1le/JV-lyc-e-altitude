@@ -2,6 +2,8 @@
 import pygame as py
 from pygame.locals import * 
 import sys
+import os.path
+import pickle
 from maps.attributs import GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT
 
 # // les init de pygame //
@@ -17,6 +19,10 @@ ecran.fill(color)
 FPS = 60
 fpsClock = py.time.Clock()
 
+SAVE_FOLDER = "sauvegardes/"
+NUM_SAVE_SLOTS = 5
+FONT = py.font.Font(size=32)
+
 # // imports divers //
 from inputs import verifierInputKey
 
@@ -29,11 +35,10 @@ def main():
     # // Espace dédié au diverses variables liée au fonctionnement du code //
     continuer = True
 
-    location = {"destination": "overworld", "position": (100, 125)}
+    id, location, joueur = mainMenu()
     mapjeu = Map(0, 0, location["destination"])
 
     # // ajout des sprites dans le jeu //
-    joueur = Joueur(location["position"][0], location["position"][1])
 
     transitionEcran = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.3, transitionType="fade", playType="ping-pong")
     transitionZone = Transition(GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, end=0.5, transitionType="circle", playType="ping-pong")
@@ -47,9 +52,14 @@ def main():
         # // Les évenement (input joueur) sont ici //
         keys_pressed_once = []
         for event in py.event.get():
+            if event.type == py.QUIT:
+                saveGame(id, location, joueur)
+                py.quit()
+                sys.exit()
             if event.type == py.KEYDOWN:
                 keys_pressed_once.append(event.key)
                 if verifierInputKey(event.key, "quit"):
+                    saveGame(id, location, joueur)
                     py.quit()
                     sys.exit()
                 elif verifierInputKey(event.key, "zoom"):
@@ -101,6 +111,50 @@ def main():
         fpsClock.tick(FPS)
 
 # // fonction diverses //
+
+def mainMenu():
+    saveSlots = [{"rect": py.Rect(50, i * 150 + 25, 200, 125), "id": i} for i in range(NUM_SAVE_SLOTS)]
+    running = True
+    while running:
+        for event in py.event.get():
+            if event.type == py.KEYDOWN:
+                if event.key == py.K_ESCAPE:
+                    py.quit()
+                    sys.exit()
+            if event.type == py.QUIT:
+                py.quit()
+                sys.exit()
+            if event.type == py.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mouse_x, mouse_y = py.mouse.get_pos()
+                    for button in saveSlots:
+                        if button["rect"].collidepoint((mouse_x, mouse_y)):
+                            return loadSave(button["id"])
+        
+        ecran.fill(color)
+
+        for button in saveSlots:
+            py.draw.rect(ecran, (100, 200, 0), button["rect"], 10)
+            text_img = FONT.render("sauvegarde: " + str(button["id"]), True, (0, 100, 100))
+            ecran.blit(text_img, (button["rect"].topleft[0] + 20, button["rect"].topleft[1] + 50))
+
+        pygame.display.update()
+
+        fpsClock.tick(FPS)
+
+def loadSave(id=0):
+    fileName = SAVE_FOLDER + "save" + str(id) + ".txt"
+    if os.path.isfile(fileName):
+        with open(fileName, "rb") as f:
+            save = pickle.load(f)
+        return id, save["location"], Joueur(save["position"][0], save["position"][1], save["items"], save["collectedItems"], save["events"])
+    else:
+        return id, {"destination": "overworld", "position": (100, 125)}, Joueur(100, 125, {}, {})
+
+def saveGame(id, location, joueur: Joueur):
+    fileName = SAVE_FOLDER + "save" + str(id) + ".txt"
+    with open(fileName, "wb") as f:
+        pickle.dump({"location": location, "items": joueur.items, "collectedItems": joueur.collectedItems, "position": joueur.rect.center, "events": joueur.evenements}, f)
 
 if __name__ == "__main__":
     main()

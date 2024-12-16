@@ -3,13 +3,13 @@ from inputs import verifierInput, verifierInputList
 import math
 from maps.attributs import GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT, WIDTH_FACE, HEIGHT_FACE
 from Evenements import Evenements
-from copy import deepcopy
+from items import items
 
 RACINEDE2 = math.sqrt(2)
 
 
 class Joueur(py.sprite.Sprite):
-    def __init__(self, x, y):
+    def __init__(self, x, y, p_items, collectedItems, events=False):
         self.rect = py.Rect(0, 0, 50, 100)
         self.rect.center = (x, y)
 
@@ -36,11 +36,14 @@ class Joueur(py.sprite.Sprite):
         self.talkingFont = py.font.Font(size=32)
         self.talkPossible = False
 
-        self.evenements = Evenements()
+        self.evenements = events or Evenements()
 
-        self.items = {}
-        self.collectedItems = {}
-        self.inInventory = False
+        self.items = p_items
+        self.collectedItems = collectedItems
+        self.inMenu = False
+        self.menuTabs = {"inventaire": self.drawInventaire} #{"equipment", "inventaire": self.drawInventaire, "stats", "settings", "sauvegardes"}
+        self.menuTabsList = ["inventaire"]
+        self.menuTab = 0
         self.inventorySurface = py.Surface((GAME_SCREEN_WIDTH, GAME_SCREEN_HEIGHT), py.SRCALPHA)
         self.inventorySurface.fill((0, 0, 0))
         self.inventorySurface.set_alpha(100)
@@ -75,7 +78,7 @@ class Joueur(py.sprite.Sprite):
         self.updateTalk(dt, keys_pressed_once, mapjeu)
 
         if verifierInputList(keys_pressed_once, "inventaire"):
-            self.inInventory = not self.inInventory
+            self.inMenu = not self.inMenu
 
         if not input:
             return zoom, location
@@ -233,11 +236,16 @@ class Joueur(py.sprite.Sprite):
             textImg = self.talkingFont.render("Pour parler: Entrer", True, (255, 0, 100))
             surface.blit(textImg, (GAME_SCREEN_WIDTH - 300, 100))
 
-        if self.inInventory:
+        if self.inMenu:
             surface.blit(self.inventorySurface, (0, 0))
-            for i, item in enumerate(self.items):
-                textImg = self.talkingFont.render(item + ": " + str(len(self.items[item])), True, (255, 100, 100))
-                surface.blit(textImg, (25, (i + 1) * 32))
+            self.menuTabs[self.menuTabsList[self.menuTab]](surface)
+    
+    def drawInventaire(self, surface: py.Surface):
+        i = 0
+        for item in self.items:
+            textImg = self.talkingFont.render(item + ": " + str(len(self.items[item])), True, (255, 100, 100))
+            surface.blit(textImg, (25, (i + 1) * 32))
+            i += 1
 
 def clamp(n, p_min, p_max):
     if p_max > p_min:
