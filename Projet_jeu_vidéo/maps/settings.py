@@ -18,7 +18,7 @@ def get_variables_from_txt(file_path):
                         pass
                     variables[key] = value
     except FileNotFoundError:
-        print(f"fichier introuvable{file_path} ")
+        print(f"fichier introuvable {file_path} ")
     except Exception as e:
         print(f"Erreur: {e}")
     return variables

@@ -5,6 +5,7 @@ import pickle
 from math import ceil, floor
 import attributs
 from settings import *
+import addphoto as uploadphoto
 
 pygame.init()
 
@@ -72,7 +73,7 @@ def main():
         {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 200.0, 300, 100), "name": "largeur de la map", "var": attributs.MapSize.setWidth, "val": attributs.MapSize.getWidth},
         {"rect": pygame.Rect(300, 100.0, 300, 100), "name": "commencer"},
     ]
-
+    
     SettingVars = [
         {"rect": pygame.Rect(SCREEN_WIDTH - 300, 10, 300, 100), "name": "Home screen"},
         {"rect": pygame.Rect(SCREEN_WIDTH - 300, 120, 300, 100), "name": "Apply"},
@@ -81,12 +82,19 @@ def main():
         {"rect": pygame.Rect(0, 210, 300, 100), "name": "Fullscreen",  "val": parametres["fullscreen"]},
     ]
 
+    addphotobutton = [
+        {"rect": pygame.Rect(SCREEN_WIDTH /2 - 150, 10, 300, 100), "name": "Home screen"},
+        {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 120, 300, 100), "name": "selectionner une photo"},
+    ]
+    
+
     running = True
     editing = False
     editingScreen = False
     editingText = ""
     choseFile = False
     settingstoggle = False
+    addphoto = False
 
     while running:
         for event in pygame.event.get():
@@ -130,7 +138,7 @@ def main():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_x, mouse_y = pygame.mouse.get_pos()
-                    if not choseFile and not settingstoggle:
+                    if not choseFile and not settingstoggle and not addphoto:
                         for folder in folders:
                             if folder["rect"].collidepoint((mouse_x, mouse_y)):
                                 TILE_MAP_SAVE_FOLDER_NAME = folder["path"]
@@ -143,7 +151,9 @@ def main():
                                 choseFile = True
                         if pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).collidepoint((mouse_x, mouse_y)):
                             settingstoggle = True
-                    elif settingstoggle and not choseFile :
+                        if pygame.Rect(SCREEN_WIDTH - 650 , 10, 300, 100).collidepoint((mouse_x, mouse_y)):
+                            addphoto = True
+                    elif settingstoggle and not choseFile and not addphoto:
                         for button in SettingVars:
                             if button["rect"].collidepoint((mouse_x, mouse_y)):
                                 if button["name"] == "Home screen":
@@ -167,7 +177,13 @@ def main():
                                     button["val"] = parametres["fullscreen"]
                                 else:
                                     editingScreen = button["name"]
-                                    
+                    elif addphoto and not choseFile and not settingstoggle:  
+                        for button in addphotobutton:
+                            if button["rect"].collidepoint((mouse_x, mouse_y)):
+                                if button["name"] == "Home screen":
+                                    addphoto = False      
+                                if button["name"] == "selectionner une photo":
+                                    uploadphoto.run_tkinter()
                     else:
                         for button in buttonsVars:
                             if button["rect"].collidepoint((mouse_x, mouse_y)):
@@ -178,7 +194,7 @@ def main():
 
         screen.fill(BG_COLOR)
 
-        if not choseFile and not settingstoggle:
+        if not choseFile and not settingstoggle and not addphoto:
             for folder in folders:
                 pygame.draw.rect(screen, (0, 0, 0), folder["rect"], 10)
                 path_img = FONT.render(folder["path"], True, (0, 100, 100))
@@ -188,7 +204,11 @@ def main():
             path_img = FONT.render('Reglages', True, (0, 100, 100))
             screen.blit(path_img, (pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).topleft[0] + 10, pygame.Rect(SCREEN_WIDTH - 300 , 10, 300, 100).topleft[1] + 28))
 
-        elif settingstoggle and not choseFile :
+            pygame.draw.rect(screen, (0, 0, 0), pygame.Rect(SCREEN_WIDTH - 650 , 10, 300, 100), 10)
+            path_img = FONT.render('Ajouter une tile map', True, (0, 100, 100))
+            screen.blit(path_img, (pygame.Rect(SCREEN_WIDTH - 650 , 10, 300, 100).topleft[0] + 10, pygame.Rect(SCREEN_WIDTH - 650 , 10, 300, 100).topleft[1] + 28))
+
+        elif settingstoggle and not choseFile and not addphoto:
             for button in SettingVars:
                 pygame.draw.rect(screen, (0, 0, 0), button["rect"], 10)
                 if button["name"] == "Apply" or button["name"] == "Home screen" :
@@ -202,6 +222,13 @@ def main():
                 screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8))
                 text_img = FONT.render(editingText, True, (0, 255, 255))
                 screen.blit(text_img, (SCREEN_WIDTH / 8, SCREEN_HEIGHT / 8 + 64))
+    
+        elif addphoto and not choseFile and not settingstoggle:
+            for button in addphotobutton:
+                pygame.draw.rect(screen, (0, 0, 0), button["rect"], 5)
+                text_img = FONT.render(button["name"], True, (0, 100, 100))
+                screen.blit(text_img, (button["rect"].topleft[0] + 10, button["rect"].topleft[1] + 28))
+            
         else:
             for button in buttonsVars:
                 pygame.draw.rect(screen, (100, 200, 0), button["rect"], 10)
