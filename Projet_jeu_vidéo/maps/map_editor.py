@@ -183,6 +183,7 @@ def main():
                                 if button["name"] == "Home screen":
                                     addphoto = False      
                                 if button["name"] == "selectionner une photo":
+                                    print("hi")
                                     uploadphoto.run_tkinter()
                     else:
                         for button in buttonsVars:
@@ -249,7 +250,7 @@ def main():
         pygame.display.update()
 
         fpsClock.tick(FPS)
-    
+    attributs.main()
     with open(TILE_MAP_SAVE_FOLDER_NAME + "/attributs.txt", "w") as f:
         f.write(str(attributs.MapSize.getWidth()) + ";" + str(attributs.MapSize.getHeight()))
     

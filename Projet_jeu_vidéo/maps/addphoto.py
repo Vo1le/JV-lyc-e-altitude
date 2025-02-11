@@ -30,11 +30,15 @@ class IntervalApp:
         self.listbox = tk.Listbox(root)
         self.listbox.pack()
 
+        self.remove_button = tk.Button(root, text="Supprimer les intervals", command=self.remove_intervals)
+        self.remove_button.pack()
+
         self.canvas = tk.Canvas(root, width=300, height=300)
         self.canvas.pack()
 
         self.select_button = tk.Button(root, text="valider", command=lambda:[self.valid(), root.destroy()])
         self.select_button.pack()
+
 
     def newimg (self):
         if self.img != None:
@@ -65,7 +69,7 @@ class IntervalApp:
 
     def add_interval(self):
         if self.img != None :
-            start = simpledialog.askinteger("Début", "Entrez le début de l'intervalle:")
+            start = self.intervals[-1][1] + 1 if self.intervals else 0
             if start != None:
                 fin = simpledialog.askinteger("Fin", "Entrez la fin de l'intervalle:")
                 if fin != None:
@@ -95,7 +99,11 @@ class IntervalApp:
         else :
             tk.messagebox.showwarning(title="Attention", message="choississez une image avant de continuer")
 
-    
+    def remove_intervals(self):
+        if self.intervals:
+            self.intervals.clear()
+            self.listbox.delete(0, tk.END)
+            messagebox.showinfo("Suppression", "Tous les intervalles ont été supprimés.")
 
 
     def valid(self):
@@ -106,4 +114,4 @@ def run_tkinter():
     app = IntervalApp(root)
     root.mainloop()
 
-run_tkinter()
+

@@ -1,6 +1,6 @@
 import pygame, os
 from math import floor
-
+import settings
 # Noms des attributs
 MUR = 1
 
@@ -38,6 +38,10 @@ def main():
     tile_maps["chicken_walk.png"] = {"tile_size": 32, "attributs": [create_tile_atlas(0, 1, 1, 1)]}
     tile_maps["Cave.png"] = {"tile_size": 16, "attributs": [create_tile_atlas(0, 0, 5, 3, [MUR], [], (1, 1), (1, 2))]}
     tile_maps["Coin2.png"] = {"tile_size": 10, "attributs": [create_tile_atlas(0, 0, 4, 1)]}
+
+    newimages = settings.get_variables_from_txt("imageloadfile.txt")
+    for i in range(0,len(newimages)):
+        print("hiiiii")
 
     # animations
     # pour rajouter une tuile animée:
