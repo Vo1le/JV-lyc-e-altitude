@@ -113,7 +113,6 @@ class ImageManagerApp:
     def open_list_window(self):
         self.list_window = tk.Toplevel(self.root)
         self.list_window.title("Image")
-
         self.load_entries()
 
     def load_entries(self):
