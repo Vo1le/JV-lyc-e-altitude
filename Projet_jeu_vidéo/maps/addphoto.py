@@ -3,7 +3,7 @@ from tkinter import filedialog, simpledialog, messagebox
 from PIL import Image, ImageTk
 import shutil
 import os
-
+GRID_SIZE = 32
 presetfilepath= "imageloadfile.txt"
 def addtotxt(filepath, txt):
     with open(filepath, "a") as file :
@@ -14,30 +14,25 @@ class IntervalApp:
     def __init__(self, root):
         self.img = None
         self.name = ""
+        self.image = None
+        self.img_tk = None
+        self.interval = []
+
         self.root = root
         self.root.title("Sélecteur de tile map")
     
         self.image_label = tk.Label(root, text="Aucune image sélectionnée")
         self.image_label.pack()
 
+        self.select_button = tk.Button(root, text="enregister", command=lambda:[self.valid(), root.destroy()])
+        self.select_button.pack()
+
         self.select_button = tk.Button(root, text="Sélectionner une Image", command=self.load_image)
         self.select_button.pack()
-
-        self.intervals = []
-        self.add_interval_button = tk.Button(root, text="Ajouter un Intervalle", command=self.add_interval)
-        self.add_interval_button.pack()
-
-        self.listbox = tk.Listbox(root)
-        self.listbox.pack()
-
-        self.remove_button = tk.Button(root, text="Supprimer les intervals", command=self.remove_intervals)
-        self.remove_button.pack()
-
-        self.canvas = tk.Canvas(root, width=300, height=300)
+        self.frame = tk.Frame(root)
+        self.frame.pack(padx=10, pady=10)
+        self.canvas = tk.Canvas(self.frame, bg="white")
         self.canvas.pack()
-
-        self.select_button = tk.Button(root, text="valider", command=lambda:[self.valid(), root.destroy()])
-        self.select_button.pack()
 
 
     def newimg (self):
@@ -47,11 +42,10 @@ class IntervalApp:
             if reponse == True:
                 self.img =None
                 self.name = ""
-                self.intervals= None
+                self.interval = []
                 self.canvas.delete("all")
-                self.image_label.config(text=self.img)
-            
-
+                self.canvas.config(width=100, height=100)
+                self.image_label.config(text=self.img)         
 
     def load_image(self):
         if self.img == None:
@@ -60,54 +54,44 @@ class IntervalApp:
             self.name = os.path.basename(self.img)
             if file_path:
                 self.image = Image.open(file_path)
-                self.image.thumbnail((300, 300))
-                self.tk_image = ImageTk.PhotoImage(self.image)
-                self.canvas.create_image(150, 150, image=self.tk_image)
-                self.image_label.config(text=file_path)
+                self.update_canvas()
         else:
             self.newimg()
 
-    def add_interval(self):
-        if self.img != None :
-            start = self.intervals[-1][1] + 1 if self.intervals else 0
-            if start != None:
-                fin = simpledialog.askinteger("Fin", "Entrez la fin de l'intervalle:")
-                if fin != None:
-                    type_window = tk.Toplevel(self.root)
-                    type_window.title("Sélectionner un d'interval")
+    def update_canvas(self):
+        if self.image is None:
+            return
 
-                    tk.Label(type_window, text="Choisissez un type:").pack()
+        img_width, img_height = self.image.size
+        
+        self.canvas.config(width=img_width, height=img_height)
+        self.interval.append(img_width // GRID_SIZE)
+        self.interval.append(img_height // GRID_SIZE)
+        self.img_tk = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.img_tk)
 
-                    type_options = ["Rien", "MUR"]
-                    selected_type = tk.StringVar(type_window)
-                    selected_type.set(type_options[0])
+        self.draw_grid(img_width, img_height)
 
-                    type_menu = tk.OptionMenu(type_window, selected_type, *type_options)
-                    type_menu.pack()
+    def draw_grid(self, width, height):
+        self.canvas.delete("grid")  
 
-                    def confirm_selection():
-                        category = selected_type.get()
-                        self.intervals.append((start, fin, category))
-                        addtotxt(presetfilepath, f"{self.name} = {self.intervals}")
-                        self.listbox.insert(tk.END, f"{start} à {fin} : {category}")
-                        print(self.intervals)
-                        type_window.destroy() 
-                    def delete():
-                        type_window.destroy()
-                    tk.Button(type_window, text="Valider", command=confirm_selection).pack()
-                    tk.Button(type_window, text="Annuler", command=delete).pack()
-        else :
-            tk.messagebox.showwarning(title="Attention", message="choississez une image avant de continuer")
+        cols = width // GRID_SIZE
+        rows = height // GRID_SIZE
 
-    def remove_intervals(self):
-        if self.intervals:
-            self.intervals.clear()
-            self.listbox.delete(0, tk.END)
-            messagebox.showinfo("Suppression", "Tous les intervalles ont été supprimés.")
+        for i in range(cols + 1):
+            x = i * GRID_SIZE
+            self.canvas.create_line(x, 0, x, height, fill="red", tags="grid")
+
+        for j in range(rows + 1):
+            y = j * GRID_SIZE
+            self.canvas.create_line(0, y, width, y, fill="red", tags="grid")
+
+        self.canvas.create_text(10, 10, anchor="nw", text=f"Cols: {cols}, Rows: {rows}", fill="black", font=("Arial", 12, "bold"), tags="grid")
 
 
     def valid(self):
         shutil.copy(self.img, "tilemaps")
+        addtotxt(presetfilepath, f"{self.name} = {self.interval}")
 
 def run_tkinter():
     root = tk.Tk()
@@ -115,3 +99,74 @@ def run_tkinter():
     root.mainloop()
 
 
+TXT_FILE = "imageloadfile.txt"
+IMAGE_FOLDER = "tilemaps"  
+
+class ImageManagerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("modifier images loads")
+
+        self.open_button = tk.Button(root, text="liste image", command=self.open_list_window)
+        self.open_button.pack(pady=10)
+
+    def open_list_window(self):
+        self.list_window = tk.Toplevel(self.root)
+        self.list_window.title("Image")
+
+        self.load_entries()
+
+    def load_entries(self):
+        try:
+            with open(TXT_FILE, "r") as file:
+                lines = file.readlines()
+        except FileNotFoundError:
+            messagebox.showerror("Error", f"Fichier '{TXT_FILE}' introuvable")
+            return
+
+        if not lines:
+            messagebox.showinfo("Info", "Aucune image chargée")
+            return
+
+        for line in lines:
+            if "=" in line:
+                filename = line.split("=")[0].strip()
+
+                frame = tk.Frame(self.list_window)
+                frame.pack(fill=tk.X, padx=5, pady=2)
+
+                label = tk.Label(frame, text=filename, anchor="w")
+                label.pack(side=tk.LEFT, expand=True)
+
+                delete_button = tk.Button(frame, text="suprimer", command=lambda f=filename: self.delete_entry(f))
+                delete_button.pack(side=tk.RIGHT)
+
+    def delete_entry(self, filename):
+        try:
+            with open(TXT_FILE, "r") as file:
+                lines = file.readlines()
+
+            with open(TXT_FILE, "w") as file:
+                for line in lines:
+                    if not line.startswith(filename):
+                        file.write(line)
+
+            image_path = os.path.join(IMAGE_FOLDER, filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+                messagebox.showinfo("yeppi", f"Supression effectuer pour '{filename}'")
+            else:
+                messagebox.showwarning("mince", f"Image '{filename}' introuvable dans '{IMAGE_FOLDER}'.")
+
+            # Refresh list window
+            for widget in self.list_window.winfo_children():
+                widget.destroy()
+            self.load_entries()
+
+        except Exception as e:
+            messagebox.showerror("Erreur", f"erreur: {e}")
+
+def runtk2():
+    root = tk.Tk()
+    app = ImageManagerApp(root)
+    root.mainloop()

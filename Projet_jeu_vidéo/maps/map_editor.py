@@ -84,7 +84,8 @@ def main():
 
     addphotobutton = [
         {"rect": pygame.Rect(SCREEN_WIDTH /2 - 150, 10, 300, 100), "name": "Home screen"},
-        {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 120, 300, 100), "name": "selectionner une photo"},
+        {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 120, 300, 100), "name": "selectionner une tile"},
+        {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 220, 300, 100), "name": "modifier les tiles"},
     ]
     
 
@@ -182,9 +183,10 @@ def main():
                             if button["rect"].collidepoint((mouse_x, mouse_y)):
                                 if button["name"] == "Home screen":
                                     addphoto = False      
-                                if button["name"] == "selectionner une photo":
-                                    print("hi")
+                                if button["name"] == "selectionner une tile":
                                     uploadphoto.run_tkinter()
+                                if button["name"] == "modifier les tiles":
+                                    uploadphoto.runtk2()
                     else:
                         for button in buttonsVars:
                             if button["rect"].collidepoint((mouse_x, mouse_y)):
