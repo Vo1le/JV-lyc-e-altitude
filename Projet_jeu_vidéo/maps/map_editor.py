@@ -85,7 +85,7 @@ def main():
     addphotobutton = [
         {"rect": pygame.Rect(SCREEN_WIDTH /2 - 150, 10, 300, 100), "name": "Home screen"},
         {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 120, 300, 100), "name": "selectionner une tile"},
-        {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 220, 300, 100), "name": "modifier les tiles"},
+        {"rect": pygame.Rect(SCREEN_WIDTH /2 -150, 230, 300, 100), "name": "modifier les tiles"},
     ]
     
 
