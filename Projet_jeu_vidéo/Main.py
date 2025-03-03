@@ -28,7 +28,7 @@ from inputs import verifierInputKey
 
 # // Toutes les classes sont si dessous // 
 from Joueur import Joueur, get_joueur_position_cell
-from Environement import *
+from Environnement import *
 from Transition import Transition
 
 def main():

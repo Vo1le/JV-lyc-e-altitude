@@ -43,20 +43,20 @@ HELP_BACKGROUND.set_alpha(150)
 map_surface: list[pygame.Surface] = []
 
 
-def main():
+def get_screen():
+    screen_size = (0, 0)
     if parametres['fullscreen'] == 'False':
-        screen = pygame.display.set_mode(size=(SCREEN_WIDTH,SCREEN_HEIGHT))
-    else : 
-        screen = pygame.display.set_mode(size=(0,0))
+        screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
+    return pygame.display.set_mode(size=screen_size)
 
-    pygame.display.set_caption(TITLE)
-    FPS = 30
-    fpsClock = pygame.time.Clock()
-
+def get_folders():
+    """
+    Liste les répertoires dans le répertoire courant, type "caverne1", "monde", etc.
+    """
     folders = []
     x = 10.0
     y = 10.0
-    for root, dirs, files in os.walk("."):
+    for _root, dirs, _files in os.walk("."):
         for name in dirs:
             if not name in [attributs.FOLDER_PATH, attributs.TILE_MAP_FOLDER_NAME, "__pycache__"]:
                 folders.append({
@@ -65,8 +65,18 @@ def main():
                 })
                 y += 120.0
                 if y > SCREEN_WIDTH:
-                    y = 10.0
+                    y = 10.00
                     x += 250.0
+    return folders
+
+
+def main():
+    screen = get_screen()
+    pygame.display.set_caption(TITLE)
+    FPS = 30
+    fpsClock = pygame.time.Clock()
+
+    folders = get_folders()
     
     buttonsVars = [
         {"rect": pygame.Rect(SCREEN_WIDTH - 300, SCREEN_HEIGHT - 100.0, 300, 100), "name": "hauteur de la map", "var": attributs.MapSize.setHeight, "val": attributs.MapSize.getHeight},
